@@ -23,6 +23,12 @@ return [
         Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
         // Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class,
     ],
+    'tenant_identification' => [
+    'middleware' => [
+        Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+        Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+    ],
+],
 
     /**
      * Database tenancy config. Used by DatabaseTenancyBootstrapper.

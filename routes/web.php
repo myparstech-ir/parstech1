@@ -36,6 +36,9 @@ use App\Http\Controllers\Api\ServiceApiController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\BackupController;
 
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+
 // روت‌های مرکزی (بدون tenant)
 Route::get('/', function () {
     return view('welcome');
@@ -44,11 +47,10 @@ Route::get('/', function () {
 // روت‌های tenant
 Route::middleware([
     'web',
-    \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
-    // یا
-    // \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('products', ProductController::class);
     // سایر روت‌های tenant
 });
 
