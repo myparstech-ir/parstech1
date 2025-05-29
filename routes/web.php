@@ -39,6 +39,34 @@ use App\Http\Controllers\BackupController;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
+
+
+
+
+Route::get('/categories/list', [CategoryApiController::class, 'list']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // روت‌های مرکزی (بدون tenant)
 Route::get('/', function () {
     return view('welcome');

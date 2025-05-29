@@ -11,7 +11,20 @@ class CategoryApiController extends Controller
     public function index(Request $request)
     {
         $type = $request->query('type');
+        $id = $request->query('id');
         $query = Category::query();
+
+        if ($id) {
+            $category = $query->find($id);
+            if ($category) {
+                return response()->json([[
+                    'id' => $category->id,
+                    'name' => $category->name,
+                ]]);
+            }
+            return response()->json([]);
+        }
+
         if ($type) {
             $query->where('category_type', $type);
         }
@@ -21,7 +34,7 @@ class CategoryApiController extends Controller
         return response()->json($categories);
     }
 
-    // متد جدید ایجکس محصولات
+    // ایجکس محصولات با جستجو
     public function productList(Request $request)
     {
         $q = $request->input('q', '');

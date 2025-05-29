@@ -33,9 +33,10 @@
         @include('layouts.sidebar')
         <div id="main-content" class="main-content-advanced col-12 col-lg">
             <div class="product-form-outer d-flex justify-content-center align-items-start" style="min-height:100vh;">
-                <div class="card shadow-lg mt-4 mb-5 w-100" style="max-width: 800px;">
-                    <div class="card-header product-header">
-                        <h1 class="product-title"><i class="bi bi-plus-circle-dotted me-2"></i>افزودن محصول جدید</h1>
+                <div class="card shadow-lg mt-4 mb-5 w-100" style="max-width: 900px;">
+                    <div class="card-header product-header d-flex align-items-center justify-content-between flex-wrap">
+                        <h1 class="product-title fs-4 mb-0"><i class="bi bi-plus-circle-dotted me-2"></i>افزودن محصول جدید</h1>
+                        <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-right-circle"></i> بازگشت به لیست محصولات</a>
                     </div>
                     <div class="card-body">
                         @if ($errors->any())
@@ -51,8 +52,7 @@
                         <form id="product-form" action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" autocomplete="off">
                             @csrf
 
-                            <!-- فقط دو پارامتر در هر ردیف -->
-                            <div class="row gx-3 gy-3 mb-4 align-items-end flex-wrap">
+                            <div class="row gx-3 gy-3 mb-3 align-items-end flex-wrap">
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-type"></i> نام محصول <span class="text-danger">*</span></label>
                                     <input type="text" name="name" class="form-control form-control-lg" required value="{{ old('name') }}" autofocus>
@@ -61,7 +61,7 @@
                                     <label class="form-label fw-bold"><i class="bi bi-upc-scan"></i> کد کالا</label>
                                     <div class="input-group">
                                         <input type="text" name="code" id="product-code" class="form-control form-control-lg" value="{{ old('code', $default_code ?? 'products-1001') }}" readonly>
-                                        <span class="input-group-text">
+                                        <span class="input-group-text p-0">
                                             <div class="form-check form-switch m-0">
                                                 <input class="form-check-input" type="checkbox" id="code-edit-switch">
                                             </div>
@@ -93,7 +93,7 @@
                                     <label class="form-label fw-bold"><i class="bi bi-list-task"></i> دسته‌بندی <span class="text-danger">*</span></label>
                                     <select name="category_id" id="category-select2" class="form-select form-select-lg" required>
                                         @if(old('category_id'))
-                                            <option value="{{ old('category_id') }}" selected>دسته‌بندی انتخاب شده قبلی</option>
+                                            <option value="{{ old('category_id') }}" selected>در حال دریافت...</option>
                                         @endif
                                     </select>
                                     <a href="{{ route('categories.create') }}" target="_blank" class="btn btn-outline-success ms-2 position-absolute" style="top: 41px; left: 0;"><i class="bi bi-plus-circle"></i></a>
@@ -144,7 +144,7 @@
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">برند</label>
                                             <div class="input-group">
-                                                <select name="brand_id" class="form-select">
+                                                <select name="brand_id" class="form-select select2-simple">
                                                     <option value="">بدون برند</option>
                                                     @foreach($brands as $brand)
                                                         <option value="{{ $brand->id }}" @if(old('brand_id')==$brand->id) selected @endif>{{ $brand->name }}</option>
@@ -155,7 +155,7 @@
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">واحد اندازه‌گیری</label>
-                                            <select name="unit" id="selected-unit" class="form-select">
+                                            <select name="unit" id="selected-unit" class="form-select select2-simple">
                                                 <option value="">انتخاب کنید...</option>
                                                 @foreach($units as $unit)
                                                     <option value="{{ $unit->title }}" @if(old('unit')==$unit->title) selected @endif>{{ $unit->title }}</option>
@@ -184,7 +184,7 @@
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <div class="form-check form-switch pt-4">
-                                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {{ old('is_active', 1) ? 'checked' : '' }}>
                                                 <label class="form-check-label ms-2" for="is_active">فعال باشد</label>
                                             </div>
                                         </div>
@@ -231,9 +231,9 @@
                                             <label class="form-label"><b>تخصیص سهم سهامداران برای این محصول</b></label>
                                             <div class="alert alert-light border shadow-sm mb-2">
                                                 <small>
-                                                    اگر هیچ سهامداری انتخاب نشود، سهم محصول به طور مساوی بین همه سهامداران تقسیم می‌شود.<br>
+                                                    اگر هیچ سهامداری انتخاب نشود، سهم محصول به طور مساوی بین همه سهامداران تقسیم می‌شود.
                                                     اگر فقط یک نفر انتخاب شود، کل محصول برای او خواهد بود.<br>
-                                                    اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی ماند به طور خودکار تقسیم می‌شود).
+                                                    اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی بماند، به صورت هوشمند تقسیم می‌شود).
                                                 </small>
                                             </div>
                                             @if(isset($shareholders) && count($shareholders))
@@ -248,6 +248,7 @@
                                                                             value="{{ $shareholder->id }}"
                                                                             id="sh-{{ $shareholder->id }}"
                                                                             class="shareholder-checkbox"
+                                                                            @if(is_array(old('shareholder_ids')) && in_array($shareholder->id, old('shareholder_ids'))) checked @endif
                                                                         >
                                                                     </div>
                                                                 </div>
@@ -257,7 +258,8 @@
                                                                     class="form-control shareholder-percent"
                                                                     min="0" max="100" step="0.01"
                                                                     placeholder="درصد سهم"
-                                                                    disabled
+                                                                    value="{{ old('shareholder_percents.'.$shareholder->id) }}"
+                                                                    @if(!(is_array(old('shareholder_ids')) && in_array($shareholder->id, old('shareholder_ids')))) disabled @endif
                                                                 >
                                                                 <div class="input-group-append">
                                                                     <span class="input-group-text">{{ $shareholder->full_name }}</span>
@@ -324,4 +326,61 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
     <script src="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone-min.js"></script>
     <script src="{{ asset('js/products-create-advanced.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // دسته‌بندی با select2 + ایجکس (جایگزین پیاده‌سازی دستی)
+        $('#category-select2').select2({
+    theme: 'bootstrap4',
+    dir: 'rtl',
+    language: 'fa',
+    placeholder: 'انتخاب دسته‌بندی...',
+    allowClear: true,
+    minimumInputLength: 0,
+    ajax: {
+        url: '/api/categories/product-list',
+        dataType: 'json',
+        delay: 250,
+        data: function(params) {
+            return { q: params.term || '', limit: 5 };
+        },
+        processResults: function (data) {
+            return {
+                results: data.items.map(item => ({
+                    id: item.id,
+                    text: item.name
+                }))
+            };
+        },
+        cache: true
+    }
+});
+        // مقدار old لود شود
+        @if(old('category_id'))
+        $.ajax({
+            url: '/api/categories/product-list',
+            data: { q: '', limit: 100 },
+            dataType: 'json'
+        }).done(function(data) {
+            let found = data.items.find(cat => cat.id == "{{ old('category_id') }}");
+            if(!found) {
+                // اگر در 5 تای آخر نبود، به صورت دستی اضافه کن
+                $('#category-select2').append(
+                    $('<option>', {
+                        value: "{{ old('category_id') }}",
+                        text: 'دسته‌بندی انتخاب شده (بارگیری نام...)',
+                        selected: true
+                    })
+                );
+                // درخواست جدا برای دریافت نام دسته‌بندی
+                $.get('/api/categories', { id: "{{ old('category_id') }}" }, function(res){
+                    let cat = (Array.isArray(res) ? res : []).find(c => c.id == "{{ old('category_id') }}");
+                    if(cat) $('#category-select2 > option[value="{{ old('category_id') }}"]').text(cat.name);
+                });
+            }
+        });
+        @endif
+
+        // سایر select2 ساده برای برند/واحد
+        $('.select2-simple').select2({ dir: 'rtl', width: '100%' });
+    </script>
 @endsection
