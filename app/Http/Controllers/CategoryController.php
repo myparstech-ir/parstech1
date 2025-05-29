@@ -14,6 +14,26 @@ class CategoryController extends Controller
         return view('categories.index', compact('categories'));
     }
 
+    public function list(Request $request)
+    {
+        $query = $request->input('q', '');
+        $limit = intval($request->input('limit', 5));
+
+        $categories = Category::query()
+            // اگر type نداری خط زیر را حذف کن
+            //->where('type', 'product')
+            ->when($query, function($q) use ($query) {
+                $q->where('name', 'like', '%'.$query.'%');
+            })
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get(['id', 'name']);
+
+        return response()->json([
+            'items' => $categories,
+        ]);
+    }
+
     public function create()
     {
         $personCategories = Category::where('category_type', 'person')->get();

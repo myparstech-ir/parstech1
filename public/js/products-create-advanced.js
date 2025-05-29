@@ -1,5 +1,3 @@
-// products-create-advanced.js
-
 // تبدیل اعداد لاتین به فارسی
 function toPersianNumber(str) {
     if (!str) return '';
@@ -21,7 +19,7 @@ function generateEan13() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Dropzone: فقط یکبار فعال شود
+    // Dropzone
     if (window.Dropzone && !document.getElementById('gallery-dropzone').dropzone) {
         Dropzone.autoDiscover = false;
         new Dropzone("#gallery-dropzone", {
@@ -33,34 +31,6 @@ document.addEventListener('DOMContentLoaded', function () {
             dictDefaultMessage: "تصاویر را اینجا بکشید یا کلیک کنید",
         });
     }
-
-    // SweetAlert2 برای تب‌ها
-    const tabAlerts = {
-        'main-tab': 'اطلاعات تکمیلی را وارد کنید.',
-        'media-tab': 'رسانه و فایل‌های محصول را بارگذاری کنید.',
-        'desc-tab': 'توضیحات و ویژگی‌های محصول را وارد کنید.',
-        'shareholder-tab': 'سهم سهامداران را مشخص کنید.'
-    };
-    document.querySelectorAll('#productTab button').forEach(btn => {
-        btn.addEventListener('shown.bs.tab', function(e) {
-            let id = e.target.id;
-            if(tabAlerts[id]){
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'info',
-                    title: tabAlerts[id],
-                    showConfirmButton: false,
-                    timer: 1800,
-                    timerProgressBar: true,
-                    background: '#e3f0ff',
-                    color: '#17517b',
-                    iconColor: '#1976d2',
-                    customClass: { popup: 'swal2-sm' }
-                });
-            }
-        });
-    });
 
     // اعداد فارسی روی فیلدهای عددی
     document.querySelectorAll(".persian-number").forEach(inp => {
@@ -77,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
             this.style.textAlign = 'right';
         });
         inp.addEventListener('focus', function(){
-            this.value = this.value.replace(/[۰-۹]/g, d => "0123456789"["۰۱۲۳۴۵۶۷۸۹".indexOf(d)]); // فارسی به لاتین
+            this.value = this.value.replace(/[۰-۹]/g, d => "0123456789"["۰۱۲۳۴۵۶۷۸۹".indexOf(d)]);
             this.style.direction = 'ltr';
             this.style.textAlign = 'left';
         });
@@ -124,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     handleBarcodeBtn('generate-barcode-btn', 'barcode-field');
     handleBarcodeBtn('generate-store-barcode-btn', 'store-barcode-field');
 
-    // دسته‌بندی جستجویی (کاملا بدون وابستگی به Select2 و jQuery، فقط JS و AJAX)
+    // دسته‌بندی جستجویی (بدون jQuery و Select2 - فقط JS و AJAX)
     (function(){
         const categoryInput = document.getElementById('category-select2');
         if (!categoryInput) return;
@@ -167,11 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
         dropdown.appendChild(list);
 
         let lastAjaxRequest = null;
-        // تابع بارگذاری دسته‌بندی‌ها
         function loadCategories(keyword='') {
             if(lastAjaxRequest) lastAjaxRequest.abort();
             lastAjaxRequest = new XMLHttpRequest();
-            let url = '/api/categories/list?limit=5';
+            let url = '/api/categories/product-list?limit=5';
             if(keyword) url += '&q=' + encodeURIComponent(keyword);
             lastAjaxRequest.open('GET', url);
             lastAjaxRequest.onreadystatechange = function(){
@@ -187,9 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             li.style.transition = '.12s';
                             li.textContent = cat.name;
                             li.onclick = function(){
-                                // مقداردهی و بستن لیست
                                 categoryInput.value = cat.id;
-                                // اگر option نبود اضافه شود و انتخاب شود
                                 let opt = Array.from(categoryInput.options).find(o=>o.value==cat.id);
                                 if(!opt){
                                     opt = document.createElement('option');
@@ -215,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function () {
             lastAjaxRequest.send();
         }
 
-        // نمایش لیست با دسته‌های اخیر
         categoryInput.addEventListener('focus', function(){
             dropdown.style.display = 'block';
             searchInput.value = '';
@@ -223,32 +189,26 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(()=>searchInput.focus(), 100);
         });
 
-        // بستن لیست روی کلیک بیرون
         document.addEventListener('click', function(e){
             if(!wrapper.contains(e.target)){
                 dropdown.style.display = 'none';
             }
         });
 
-        // جستجو هنگام تایپ
         searchInput.addEventListener('input', function(){
             loadCategories(this.value);
         });
 
-        // با کلید Esc بستن
         searchInput.addEventListener('keydown', function(e){
             if(e.key==='Escape'){ dropdown.style.display = 'none'; }
         });
     })();
 
-    // تاریخ شمسی
-    if (window.jQuery && $('#expire_date_picker').length) {
+    // تاریخ شمسی فقط با نسخه لوکال
+    if (typeof $ !== "undefined" && typeof $.fn.persianDatepicker === "function") {
         $('#expire_date_picker').persianDatepicker({
             format: 'YYYY/MM/DD',
-            initialValueType: 'gregorian',
             autoClose: true,
-            toolbox: false,
-            calendar: { persian: { locale: 'fa' } }
         });
     }
 
@@ -286,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // سهامداران
+    // سهامداران (همانند قبل)
     let checkboxes = document.querySelectorAll('.shareholder-checkbox');
     let percents = document.querySelectorAll('.shareholder-percent');
     let warning = document.getElementById('percent-warning');

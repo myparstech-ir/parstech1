@@ -361,7 +361,7 @@ Route::prefix('sales')->name('sales.')->group(function () {
 Route::get('/api/categories', [CategoryController::class, 'apiList']);
 
 
-
+Route::get('/categories/list', [CategoryController::class, 'list']);
 
 
 require __DIR__.'/auth.php';

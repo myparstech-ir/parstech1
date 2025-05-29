@@ -20,4 +20,27 @@ class CategoryApiController extends Controller
         ]);
         return response()->json($categories);
     }
+    public function productList(Request $request)
+    {
+        $query = $request->input('q', '');
+        $limit = $request->input('limit', 5);
+
+        $categories = Category::where('category_type', 'product')
+            ->when($query, function($q2) use ($query) {
+                $q2->where('name', 'like', '%'.$query.'%');
+            })
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get(['id', 'name']);
+
+        // خروجی استاندارد برای ایجکسی
+        return response()->json([
+            'items' => $categories->map(function($cat){
+                return [
+                    'id' => $cat->id,
+                    'name' => $cat->name,
+                ];
+            }),
+        ]);
+    }
 }
