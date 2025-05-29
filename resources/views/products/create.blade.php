@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone.css" />
+    <link rel="stylesheet" href="{{ asset('css/persian-datepicker.min.css') }}">
     <style>
         #main-content {
             margin-right: 138px;
@@ -16,6 +17,8 @@
             #main-content { margin-right: 0 !important; padding: 6px !important; }
         }
         .swal2-popup { font-family: Vazirmatn, Tahoma, Arial, sans-serif !important; }
+        .persian-number { direction: rtl; text-align: right; }
+        input[readonly] { background-color: #f7f7f7; }
     </style>
 @endsection
 
@@ -64,28 +67,28 @@
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-cash-stack"></i> قیمت خرید</label>
                                     <div class="input-group">
-                                        <input type="number" name="buy_price" class="form-control form-control-lg" required value="{{ old('buy_price') }}">
+                                        <input type="text" name="buy_price" class="form-control form-control-lg persian-number" required value="{{ old('buy_price') }}">
                                         <span class="input-group-text">تومان</span>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-currency-dollar"></i> قیمت فروش</label>
                                     <div class="input-group">
-                                        <input type="number" name="sell_price" class="form-control form-control-lg" required value="{{ old('sell_price') }}">
+                                        <input type="text" name="sell_price" class="form-control form-control-lg persian-number" required value="{{ old('sell_price') }}">
                                         <span class="input-group-text">تومان</span>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-percent"></i> تخفیف (%)</label>
-                                    <input type="number" name="discount" class="form-control form-control-lg" value="{{ old('discount') }}">
+                                    <input type="text" name="discount" class="form-control form-control-lg persian-number" value="{{ old('discount') }}">
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-box"></i> موجودی اولیه</label>
-                                    <input type="number" name="stock" class="form-control form-control-lg" value="{{ old('stock', 0) }}">
+                                    <input type="text" name="stock" class="form-control form-control-lg persian-number" value="{{ old('stock', 1) }}">
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-exclamation-triangle"></i> حداقل هشدار</label>
-                                    <input type="number" name="min_stock" class="form-control form-control-lg" value="{{ old('min_stock', 0) }}">
+                                    <input type="text" name="min_stock" class="form-control form-control-lg persian-number" value="{{ old('min_stock', 0) }}">
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-list-task"></i> دسته‌بندی <span class="text-danger">*</span></label>
@@ -96,18 +99,17 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <!-- فیلدهای حسابداری و حرفه ای -->
-                                <div class="col-12 col-md-6">
-                                    <label class="form-label fw-bold"><i class="bi bi-123"></i> کد حسابداری</label>
-                                    <input type="text" name="accounting_code" class="form-control form-control-lg" value="{{ old('accounting_code') }}">
-                                </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> تاریخ انقضا</label>
-                                    <input type="date" name="expire_date" class="form-control form-control-lg" value="{{ old('expire_date') }}">
+                                    <input type="text" name="expire_date" id="expire_date_picker" class="form-control form-control-lg" value="{{ old('expire_date') }}">
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> تاریخ افزودن محصول</label>
+                                    <input type="text" name="added_at" id="added_at_picker" class="form-control form-control-lg" value="{{ old('added_at', \Morilog\Jalali\Jalalian::now()->format('Y/m/d')) }}">
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-cart-plus"></i> حداقل مقدار سفارش</label>
-                                    <input type="number" name="min_order_qty" class="form-control form-control-lg" value="{{ old('min_order_qty') }}">
+                                    <input type="text" name="min_order_qty" class="form-control form-control-lg persian-number" value="{{ old('min_order_qty', 1) }}">
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-bar-chart-steps"></i> گروه قیمت</label>
@@ -169,18 +171,22 @@
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">وزن (گرم)</label>
-                                            <input type="number" name="weight" class="form-control" value="{{ old('weight') }}">
+                                            <input type="text" name="weight" class="form-control persian-number" value="{{ old('weight') }}">
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">بارکد محصول</label>
-                                            <input type="text" name="barcode" class="form-control" value="{{ old('barcode') }}">
-                                            <button type="button" class="btn btn-outline-primary mt-2" onclick="generateBarcode('barcode')">ساخت بارکد</button>
+                                            <div class="input-group">
+                                                <input type="text" name="barcode" id="barcode-field" class="form-control persian-number" value="{{ old('barcode') }}">
+                                                <button type="button" class="btn btn-outline-primary" id="generate-barcode-btn" data-target="barcode-field">ساخت بارکد</button>
+                                            </div>
                                             <span class="barcode-status"></span>
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">بارکد فروشگاهی</label>
-                                            <input type="text" name="store_barcode" class="form-control" value="{{ old('store_barcode') }}">
-                                            <button type="button" class="btn btn-outline-secondary mt-2" onclick="generateBarcode('store_barcode')">ساخت بارکد فروشگاه</button>
+                                            <div class="input-group">
+                                                <input type="text" name="store_barcode" id="store-barcode-field" class="form-control persian-number" value="{{ old('store_barcode') }}">
+                                                <button type="button" class="btn btn-outline-secondary" id="generate-store-barcode-btn" data-target="store-barcode-field">ساخت بارکد فروشگاه</button>
+                                            </div>
                                             <span class="barcode-status"></span>
                                         </div>
                                         <div class="col-12 col-md-6">
@@ -234,7 +240,7 @@
                                                 <small>
                                                     اگر هیچ سهامداری انتخاب نشود، سهم محصول به طور مساوی بین همه سهامداران تقسیم می‌شود.<br>
                                                     اگر فقط یک نفر انتخاب شود، کل محصول برای او خواهد بود.<br>
-                                                    اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی ماند به طور خودکار تقسیم می‌شود).
+                                                    اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی بگذارید به طور مساوی پخش می‌شود.)
                                                 </small>
                                             </div>
                                             @if(isset($shareholders) && count($shareholders))
@@ -252,10 +258,10 @@
                                                                         >
                                                                     </div>
                                                                 </div>
-                                                                <input type="number"
+                                                                <input type="text"
                                                                     name="shareholder_percents[{{ $shareholder->id }}]"
                                                                     id="percent-{{ $shareholder->id }}"
-                                                                    class="form-control shareholder-percent"
+                                                                    class="form-control shareholder-percent persian-number"
                                                                     min="0" max="100" step="0.01"
                                                                     placeholder="درصد سهم"
                                                                     disabled
@@ -319,72 +325,22 @@
 @endsection
 
 @section('scripts')
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
+    <script src="{{ asset('js/persian-date.min.js') }}"></script>
+    <script src="{{ asset('js/persian-datepicker.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
     <script src="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone-min.js"></script>
-    <script src="{{ asset('js/products-create.js') }}"></script>
     <script src="{{ asset('js/products-create-advanced.js') }}"></script>
     <script>
-        // سایدبار واکنشگرا
-        function adjustMainContentWidth() {
-            let sidebar = document.querySelector('.sidebar-custom');
-            let main = document.getElementById('main-content');
-            if(sidebar && sidebar.classList.contains('collapsed')) {
-                main.classList.add('full-width');
-            } else {
-                main.classList.remove('full-width');
-            }
-        }
-        document.addEventListener('DOMContentLoaded', adjustMainContentWidth);
-        window.addEventListener('resize', adjustMainContentWidth);
-        setInterval(adjustMainContentWidth, 500);
-
-        // SweetAlert2 برای هشدار رفتن به تب‌ها
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabAlerts = {
-                'main-tab': 'اطلاعات تکمیلی را وارد کنید.',
-                'media-tab': 'رسانه و فایل‌های محصول را بارگذاری کنید.',
-                'desc-tab': 'توضیحات و ویژگی‌های محصول را وارد کنید.',
-                'shareholder-tab': 'سهم سهامداران را مشخص کنید.'
-            };
-            document.querySelectorAll('#productTab button').forEach(btn => {
-                btn.addEventListener('shown.bs.tab', function(e) {
-                    let id = e.target.id;
-                    if(tabAlerts[id]){
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'info',
-                            title: tabAlerts[id],
-                            showConfirmButton: false,
-                            timer: 1800,
-                            timerProgressBar: true,
-                            background: '#e3f0ff',
-                            color: '#17517b',
-                            iconColor: '#1976d2',
-                            customClass: { popup: 'swal2-sm' }
-                        });
-                    }
-                });
+        $(function() {
+            $('#expire_date_picker').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                autoClose: true,
             });
-        });
-
-        // SweetAlert2 toast برای ذخیره موفق
-        document.getElementById('product-form').addEventListener('submit', function(e){
-            setTimeout(function() {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'محصول با موفقیت ذخیره شد!',
-                    showConfirmButton: false,
-                    timer: 2200,
-                    timerProgressBar: true,
-                    background: '#e6fff2',
-                    color: '#2e7d32',
-                    iconColor: '#009688',
-                    customClass: { popup: 'swal2-sm' }
-                });
-            }, 500);
+            $('#added_at_picker').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+            });
         });
     </script>
 @endsection
