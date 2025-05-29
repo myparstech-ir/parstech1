@@ -6,6 +6,8 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Console\\Commands\\MakeTenant' => $baseDir . '/app/Console/Commands/MakeTenant.php',
+    'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
     'App\\Exports\\GenericExport' => $baseDir . '/app/Exports/GenericExport.php',
     'App\\Exports\\SingleSheetExport' => $baseDir . '/app/Exports/SingleSheetExport.php',
     'App\\Http\\Controllers\\AccountingController' => $baseDir . '/app/Http/Controllers/AccountingController.php',
@@ -83,12 +85,14 @@ return array(
     'App\\Models\\Shareholder' => $baseDir . '/app/Models/Shareholder.php',
     'App\\Models\\Shop' => $baseDir . '/app/Models/Shop.php',
     'App\\Models\\Stock' => $baseDir . '/app/Models/Stock.php',
+    'App\\Models\\Tenant' => $baseDir . '/app/Models/Tenant.php',
     'App\\Models\\Unit' => $baseDir . '/app/Models/Unit.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'App\\Providers\\HeaderComposerServiceProvider' => $baseDir . '/app/Providers/HeaderComposerServiceProvider.php',
     'App\\Providers\\JalaliServiceProvider' => $baseDir . '/app/Providers/JalaliServiceProvider.php',
     'App\\Providers\\SidebarServiceProvider' => $baseDir . '/app/Providers/SidebarServiceProvider.php',
+    'App\\Providers\\TenancyServiceProvider' => $baseDir . '/app/Providers/TenancyServiceProvider.php',
     'App\\Providers\\VertaServiceProvider' => $baseDir . '/app/Providers/VertaServiceProvider.php',
     'App\\View\\Components\\AppLayout' => $baseDir . '/app/View/Components/AppLayout.php',
     'App\\View\\Components\\GuestLayout' => $baseDir . '/app/View/Components/GuestLayout.php',

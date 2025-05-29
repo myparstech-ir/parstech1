@@ -804,6 +804,8 @@ class ComposerStaticInit88970a0117c062eed55fa8728fc43833
     );
 
     public static $classMap = array (
+        'App\\Console\\Commands\\MakeTenant' => __DIR__ . '/../..' . '/app/Console/Commands/MakeTenant.php',
+        'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exports\\GenericExport' => __DIR__ . '/../..' . '/app/Exports/GenericExport.php',
         'App\\Exports\\SingleSheetExport' => __DIR__ . '/../..' . '/app/Exports/SingleSheetExport.php',
         'App\\Http\\Controllers\\AccountingController' => __DIR__ . '/../..' . '/app/Http/Controllers/AccountingController.php',
@@ -881,12 +883,14 @@ class ComposerStaticInit88970a0117c062eed55fa8728fc43833
         'App\\Models\\Shareholder' => __DIR__ . '/../..' . '/app/Models/Shareholder.php',
         'App\\Models\\Shop' => __DIR__ . '/../..' . '/app/Models/Shop.php',
         'App\\Models\\Stock' => __DIR__ . '/../..' . '/app/Models/Stock.php',
+        'App\\Models\\Tenant' => __DIR__ . '/../..' . '/app/Models/Tenant.php',
         'App\\Models\\Unit' => __DIR__ . '/../..' . '/app/Models/Unit.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Providers\\HeaderComposerServiceProvider' => __DIR__ . '/../..' . '/app/Providers/HeaderComposerServiceProvider.php',
         'App\\Providers\\JalaliServiceProvider' => __DIR__ . '/../..' . '/app/Providers/JalaliServiceProvider.php',
         'App\\Providers\\SidebarServiceProvider' => __DIR__ . '/../..' . '/app/Providers/SidebarServiceProvider.php',
+        'App\\Providers\\TenancyServiceProvider' => __DIR__ . '/../..' . '/app/Providers/TenancyServiceProvider.php',
         'App\\Providers\\VertaServiceProvider' => __DIR__ . '/../..' . '/app/Providers/VertaServiceProvider.php',
         'App\\View\\Components\\AppLayout' => __DIR__ . '/../..' . '/app/View/Components/AppLayout.php',
         'App\\View\\Components\\GuestLayout' => __DIR__ . '/../..' . '/app/View/Components/GuestLayout.php',
