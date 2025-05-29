@@ -20,20 +20,21 @@ class CategoryApiController extends Controller
         ]);
         return response()->json($categories);
     }
+
+    // متد جدید ایجکس محصولات
     public function productList(Request $request)
     {
-        $query = $request->input('q', '');
+        $q = $request->input('q', '');
         $limit = $request->input('limit', 5);
 
         $categories = Category::where('category_type', 'product')
-            ->when($query, function($q2) use ($query) {
-                $q2->where('name', 'like', '%'.$query.'%');
+            ->when($q, function($query) use ($q) {
+                $query->where('name', 'like', '%'.$q.'%');
             })
             ->orderByDesc('id')
             ->limit($limit)
             ->get(['id', 'name']);
 
-        // خروجی استاندارد برای ایجکسی
         return response()->json([
             'items' => $categories->map(function($cat){
                 return [
