@@ -88,13 +88,12 @@ Route::get('/api/sales/latest', [\App\Http\Controllers\SaleAjaxController::class
 Route::middleware(['auth'])->group(function() {
     Route::get('/backup', [BackupController::class, 'index'])->name('backup.index');
     Route::post('/backup/export', [BackupController::class, 'export'])->name('backup.export');
-    Route::get('/backup/all', [BackupController::class, 'backupAll'])->name('backup.all');
+    Route::get('/backup/allaA', [BackupController::class, 'backupAll'])->name('backup.all');
 });
 
 
 Route::get('shareholders/{id}', [ShareholderController::class, 'show'])->name('shareholders.show');
 
-Route::post('sales/{sale}/status', [SaleController::class, 'updateStatus'])->name('sales.update-status');
 
 Route::get('/services/next-code', [ServiceController::class, 'nextCode']);
 Route::get('sales/{sale}/print', [SaleController::class, 'print'])->name('sales.print');
