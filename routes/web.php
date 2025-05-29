@@ -115,7 +115,6 @@ Route::get('/sales/item-info', [ProductController::class, 'itemInfo']); // هن�
 Route::get('/products/ajax-list', [ProductController::class, 'ajaxList']);
 Route::get('/services/ajax-list', [ServiceController::class, 'ajaxList']);
 
-Route::get('/sales/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
 
 // Landing page
 Route::get('/', [LandingController::class, 'index'])->name('landing');
@@ -276,8 +275,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
-    Route::post('/invoices/store', [InvoiceController::class, 'store'])->name('invoices.store');
-    Route::get('/sellers/list', [SellerController::class, 'list'])->name('sellers.list');
 
 });
 
@@ -300,7 +297,6 @@ Route::delete('/currencies/{currency}', [CurrencyController::class, 'destroy'])-
 
 
 
-Route::get('/sales/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
 Route::get('/sales/newform', [InvoiceController::class, 'newForm'])->name('sales.newform');
 
 
