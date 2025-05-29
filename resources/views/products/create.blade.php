@@ -3,11 +3,9 @@
 
 @section('head')
     <link rel="stylesheet" href="{{ asset('css/products-create.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/persian-datepicker.min.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
     <style>
         #main-content {
             margin-right: 138px;
@@ -18,12 +16,6 @@
             #main-content { margin-right: 0 !important; padding: 6px !important; }
         }
         .swal2-popup { font-family: Vazirmatn, Tahoma, Arial, sans-serif !important; }
-        .select2-container--default .select2-selection--single { border-radius: 9px; border:1.5px solid #cfe2ff; min-height: 48px;}
-        .select2-selection__rendered { text-align: right; }
-        .select2-dropdown { text-align: right; direction: rtl; }
-        .select2-quick-list ul { padding:0; margin:0;}
-        .select2-quick-list li { margin: 2px 0;}
-        .select2-quick-list a { color: #1976d2; font-weight: bold; }
     </style>
 @endsection
 
@@ -33,10 +25,9 @@
         @include('layouts.sidebar')
         <div id="main-content" class="main-content-advanced col-12 col-lg">
             <div class="product-form-outer d-flex justify-content-center align-items-start" style="min-height:100vh;">
-                <div class="card shadow-lg mt-4 mb-5 w-100" style="max-width: 900px;">
-                    <div class="card-header product-header d-flex align-items-center justify-content-between flex-wrap">
-                        <h1 class="product-title fs-4 mb-0"><i class="bi bi-plus-circle-dotted me-2"></i>افزودن محصول جدید</h1>
-                        <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-right-circle"></i> بازگشت به لیست محصولات</a>
+                <div class="card shadow-lg mt-4 mb-5 w-100" style="max-width: 800px;">
+                    <div class="card-header product-header">
+                        <h1 class="product-title"><i class="bi bi-plus-circle-dotted me-2"></i>افزودن محصول جدید</h1>
                     </div>
                     <div class="card-body">
                         @if ($errors->any())
@@ -52,7 +43,8 @@
                         <form id="product-form" action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" autocomplete="off">
                             @csrf
 
-                            <div class="row gx-3 gy-3 mb-3 align-items-end flex-wrap">
+                            <!-- دو به دو در هر ردیف و ریسپانسیو -->
+                            <div class="row gx-3 gy-3 mb-4 align-items-end flex-wrap">
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-type"></i> نام محصول <span class="text-danger">*</span></label>
                                     <input type="text" name="name" class="form-control form-control-lg" required value="{{ old('name') }}" autofocus>
@@ -60,8 +52,8 @@
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-upc-scan"></i> کد کالا</label>
                                     <div class="input-group">
-                                        <input type="text" name="code" id="product-code" class="form-control form-control-lg" value="{{ old('code', $default_code ?? 'products-1001') }}" readonly>
-                                        <span class="input-group-text p-0">
+                                        <input type="text" name="code" id="product-code" class="form-control form-control-lg" value="{{ old('code', $default_code ?? 'product-1001') }}" readonly>
+                                        <span class="input-group-text">
                                             <div class="form-check form-switch m-0">
                                                 <input class="form-check-input" type="checkbox" id="code-edit-switch">
                                             </div>
@@ -71,51 +63,63 @@
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-cash-stack"></i> قیمت خرید</label>
-                                    <input type="text" inputmode="decimal" step="0.01" name="buy_price" class="form-control form-control-lg persian-number" required value="{{ old('buy_price') }}">
+                                    <div class="input-group">
+                                        <input type="number" name="buy_price" class="form-control form-control-lg" required value="{{ old('buy_price') }}">
+                                        <span class="input-group-text">تومان</span>
+                                    </div>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-currency-dollar"></i> قیمت فروش</label>
-                                    <input type="text" inputmode="decimal" step="0.01" name="sell_price" class="form-control form-control-lg persian-number" required value="{{ old('sell_price') }}">
+                                    <div class="input-group">
+                                        <input type="number" name="sell_price" class="form-control form-control-lg" required value="{{ old('sell_price') }}">
+                                        <span class="input-group-text">تومان</span>
+                                    </div>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-percent"></i> تخفیف (%)</label>
-                                    <input type="text" step="0.01" name="discount" class="form-control form-control-lg persian-number" value="{{ old('discount') }}">
+                                    <input type="number" name="discount" class="form-control form-control-lg" value="{{ old('discount') }}">
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-box"></i> موجودی اولیه</label>
-                                    <input type="text" step="0.01" name="stock" class="form-control form-control-lg persian-number" value="{{ old('stock', 0) }}">
+                                    <input type="number" name="stock" class="form-control form-control-lg" value="{{ old('stock', 0) }}">
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-exclamation-triangle"></i> حداقل هشدار</label>
-                                    <input type="text" name="min_stock" class="form-control form-control-lg persian-number" value="{{ old('min_stock', 0) }}">
+                                    <input type="number" name="min_stock" class="form-control form-control-lg" value="{{ old('min_stock', 0) }}">
                                 </div>
-                                <div class="col-12 col-md-6 position-relative">
+                                <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-list-task"></i> دسته‌بندی <span class="text-danger">*</span></label>
-                                    <select name="category_id" id="category-select2" class="form-select form-select-lg" required>
-                                        @if(old('category_id'))
-                                            <option value="{{ old('category_id') }}" selected>در حال دریافت...</option>
-                                        @endif
+                                    <select name="category_id" class="form-select form-select-lg" required>
+                                        <option value="">انتخاب کنید...</option>
+                                        @foreach($categories as $cat)
+                                            <option value="{{ $cat->id }}" @if(old('category_id')==$cat->id) selected @endif>{{ $cat->name }}</option>
+                                        @endforeach
                                     </select>
-                                    <a href="{{ route('categories.create') }}" target="_blank" class="btn btn-outline-success ms-2 position-absolute" style="top: 41px; left: 0;"><i class="bi bi-plus-circle"></i></a>
                                 </div>
+                                <!-- فیلدهای حسابداری و حرفه ای -->
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-123"></i> کد حسابداری</label>
                                     <input type="text" name="accounting_code" class="form-control form-control-lg" value="{{ old('accounting_code') }}">
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> تاریخ انقضا</label>
-                                    <input type="text" name="expire_date" id="expire_date_picker" class="form-control form-control-lg" value="{{ old('expire_date') }}">
+                                    <input type="date" name="expire_date" class="form-control form-control-lg" value="{{ old('expire_date') }}">
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-cart-plus"></i> حداقل مقدار سفارش</label>
-                                    <input type="text" name="min_order_qty" class="form-control form-control-lg persian-number" value="{{ old('min_order_qty') }}">
+                                    <input type="number" name="min_order_qty" class="form-control form-control-lg" value="{{ old('min_order_qty') }}">
                                 </div>
                                 <div class="col-12 col-md-6">
+                                    <label class="form-label fw-bold"><i class="bi bi-bar-chart-steps"></i> گروه قیمت</label>
+                                    <input type="text" name="price_group" class="form-control form-control-lg" value="{{ old('price_group') }}">
+                                </div>
+                                <div class="col-12 col-md-12">
                                     <label class="form-label fw-bold"><i class="bi bi-tools"></i> توضیحات فنی (برای کاتالوگ/فروشگاه)</label>
                                     <textarea name="tech_desc" class="form-control form-control-lg" rows="2">{{ old('tech_desc') }}</textarea>
                                 </div>
                             </div>
 
+                            <!-- تب‌ها -->
                             <ul class="nav nav-tabs nav-tabs-rtl mb-4" id="productTab" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="main-tab" data-bs-toggle="tab" data-bs-target="#mainTabPane" type="button" role="tab" aria-controls="mainTabPane" aria-selected="true">
@@ -144,7 +148,7 @@
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">برند</label>
                                             <div class="input-group">
-                                                <select name="brand_id" class="form-select select2-simple">
+                                                <select name="brand_id" class="form-select">
                                                     <option value="">بدون برند</option>
                                                     @foreach($brands as $brand)
                                                         <option value="{{ $brand->id }}" @if(old('brand_id')==$brand->id) selected @endif>{{ $brand->name }}</option>
@@ -155,7 +159,7 @@
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">واحد اندازه‌گیری</label>
-                                            <select name="unit" id="selected-unit" class="form-select select2-simple">
+                                            <select name="unit" id="selected-unit" class="form-select">
                                                 <option value="">انتخاب کنید...</option>
                                                 @foreach($units as $unit)
                                                     <option value="{{ $unit->title }}" @if(old('unit')==$unit->title) selected @endif>{{ $unit->title }}</option>
@@ -165,26 +169,23 @@
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">وزن (گرم)</label>
-                                            <input type="text" name="weight" class="form-control persian-number" value="{{ old('weight') }}">
+                                            <input type="number" name="weight" class="form-control" value="{{ old('weight') }}">
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">بارکد محصول</label>
-                                            <div class="input-group">
-                                                <input type="text" name="barcode" id="barcode-field" class="form-control persian-number" value="{{ old('barcode') }}">
-                                                <button type="button" class="btn btn-outline-primary" id="generate-barcode-btn" data-target="barcode-field">تولید بارکد استاندارد</button>
-                                            </div>
-                                            <small class="barcode-status"></small>
+                                            <input type="text" name="barcode" class="form-control" value="{{ old('barcode') }}">
+                                            <button type="button" class="btn btn-outline-primary mt-2" onclick="generateBarcode('barcode')">ساخت بارکد</button>
+                                            <span class="barcode-status"></span>
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">بارکد فروشگاهی</label>
-                                            <div class="input-group">
-                                                <input type="text" name="store_barcode" id="store-barcode-field" class="form-control persian-number" value="{{ old('store_barcode') }}">
-                                                <button type="button" class="btn btn-outline-secondary" id="generate-store-barcode-btn" data-target="store-barcode-field">تولید بارکد فروشگاهی</button>
-                                            </div>
+                                            <input type="text" name="store_barcode" class="form-control" value="{{ old('store_barcode') }}">
+                                            <button type="button" class="btn btn-outline-secondary mt-2" onclick="generateBarcode('store_barcode')">ساخت بارکد فروشگاه</button>
+                                            <span class="barcode-status"></span>
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <div class="form-check form-switch pt-4">
-                                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {{ old('is_active', 1) ? 'checked' : '' }}>
+                                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
                                                 <label class="form-check-label ms-2" for="is_active">فعال باشد</label>
                                             </div>
                                         </div>
@@ -231,9 +232,9 @@
                                             <label class="form-label"><b>تخصیص سهم سهامداران برای این محصول</b></label>
                                             <div class="alert alert-light border shadow-sm mb-2">
                                                 <small>
-                                                    اگر هیچ سهامداری انتخاب نشود، سهم محصول به طور مساوی بین همه سهامداران تقسیم می‌شود.
+                                                    اگر هیچ سهامداری انتخاب نشود، سهم محصول به طور مساوی بین همه سهامداران تقسیم می‌شود.<br>
                                                     اگر فقط یک نفر انتخاب شود، کل محصول برای او خواهد بود.<br>
-                                                    اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی بماند، به صورت هوشمند تقسیم می‌شود).
+                                                    اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی ماند به طور خودکار تقسیم می‌شود).
                                                 </small>
                                             </div>
                                             @if(isset($shareholders) && count($shareholders))
@@ -248,7 +249,6 @@
                                                                             value="{{ $shareholder->id }}"
                                                                             id="sh-{{ $shareholder->id }}"
                                                                             class="shareholder-checkbox"
-                                                                            @if(is_array(old('shareholder_ids')) && in_array($shareholder->id, old('shareholder_ids'))) checked @endif
                                                                         >
                                                                     </div>
                                                                 </div>
@@ -258,8 +258,7 @@
                                                                     class="form-control shareholder-percent"
                                                                     min="0" max="100" step="0.01"
                                                                     placeholder="درصد سهم"
-                                                                    value="{{ old('shareholder_percents.'.$shareholder->id) }}"
-                                                                    @if(!(is_array(old('shareholder_ids')) && in_array($shareholder->id, old('shareholder_ids')))) disabled @endif
+                                                                    disabled
                                                                 >
                                                                 <div class="input-group-append">
                                                                     <span class="input-group-text">{{ $shareholder->full_name }}</span>
@@ -320,67 +319,72 @@
 @endsection
 
 @section('scripts')
-    <script src="{{ asset('js/jquery.min.js') }}"></script>
-    <script src="{{ asset('js/persian-date.min.js') }}"></script>
-    <script src="{{ asset('js/persian-datepicker.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
     <script src="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone-min.js"></script>
+    <script src="{{ asset('js/products-create.js') }}"></script>
     <script src="{{ asset('js/products-create-advanced.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        // دسته‌بندی با select2 + ایجکس (جایگزین پیاده‌سازی دستی)
-        $('#category-select2').select2({
-    theme: 'bootstrap4',
-    dir: 'rtl',
-    language: 'fa',
-    placeholder: 'انتخاب دسته‌بندی...',
-    allowClear: true,
-    minimumInputLength: 0,
-    ajax: {
-        url: '/api/categories/product-list',
-        dataType: 'json',
-        delay: 250,
-        data: function(params) {
-            return { q: params.term || '', limit: 5 };
-        },
-        processResults: function (data) {
-            return {
-                results: data.items.map(item => ({
-                    id: item.id,
-                    text: item.name
-                }))
-            };
-        },
-        cache: true
-    }
-});
-        // مقدار old لود شود
-        @if(old('category_id'))
-        $.ajax({
-            url: '/api/categories/product-list',
-            data: { q: '', limit: 100 },
-            dataType: 'json'
-        }).done(function(data) {
-            let found = data.items.find(cat => cat.id == "{{ old('category_id') }}");
-            if(!found) {
-                // اگر در 5 تای آخر نبود، به صورت دستی اضافه کن
-                $('#category-select2').append(
-                    $('<option>', {
-                        value: "{{ old('category_id') }}",
-                        text: 'دسته‌بندی انتخاب شده (بارگیری نام...)',
-                        selected: true
-                    })
-                );
-                // درخواست جدا برای دریافت نام دسته‌بندی
-                $.get('/api/categories', { id: "{{ old('category_id') }}" }, function(res){
-                    let cat = (Array.isArray(res) ? res : []).find(c => c.id == "{{ old('category_id') }}");
-                    if(cat) $('#category-select2 > option[value="{{ old('category_id') }}"]').text(cat.name);
-                });
+        // سایدبار واکنشگرا
+        function adjustMainContentWidth() {
+            let sidebar = document.querySelector('.sidebar-custom');
+            let main = document.getElementById('main-content');
+            if(sidebar && sidebar.classList.contains('collapsed')) {
+                main.classList.add('full-width');
+            } else {
+                main.classList.remove('full-width');
             }
-        });
-        @endif
+        }
+        document.addEventListener('DOMContentLoaded', adjustMainContentWidth);
+        window.addEventListener('resize', adjustMainContentWidth);
+        setInterval(adjustMainContentWidth, 500);
 
-        // سایر select2 ساده برای برند/واحد
-        $('.select2-simple').select2({ dir: 'rtl', width: '100%' });
+        // SweetAlert2 برای هشدار رفتن به تب‌ها
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabAlerts = {
+                'main-tab': 'اطلاعات تکمیلی را وارد کنید.',
+                'media-tab': 'رسانه و فایل‌های محصول را بارگذاری کنید.',
+                'desc-tab': 'توضیحات و ویژگی‌های محصول را وارد کنید.',
+                'shareholder-tab': 'سهم سهامداران را مشخص کنید.'
+            };
+            document.querySelectorAll('#productTab button').forEach(btn => {
+                btn.addEventListener('shown.bs.tab', function(e) {
+                    let id = e.target.id;
+                    if(tabAlerts[id]){
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'info',
+                            title: tabAlerts[id],
+                            showConfirmButton: false,
+                            timer: 1800,
+                            timerProgressBar: true,
+                            background: '#e3f0ff',
+                            color: '#17517b',
+                            iconColor: '#1976d2',
+                            customClass: { popup: 'swal2-sm' }
+                        });
+                    }
+                });
+            });
+        });
+
+        // SweetAlert2 toast برای ذخیره موفق
+        document.getElementById('product-form').addEventListener('submit', function(e){
+            setTimeout(function() {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'محصول با موفقیت ذخیره شد!',
+                    showConfirmButton: false,
+                    timer: 2200,
+                    timerProgressBar: true,
+                    background: '#e6fff2',
+                    color: '#2e7d32',
+                    iconColor: '#009688',
+                    customClass: { popup: 'swal2-sm' }
+                });
+            }, 500);
+        });
     </script>
 @endsection

@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
     (function(){
         const categoryInput = document.getElementById('category-select2');
         if (!categoryInput) return;
-        // ساخت عنصر جستجو و لیست
+
         const wrapper = document.createElement('div');
         wrapper.className = 'custom-category-wrapper';
         wrapper.style.position = 'relative';
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
         function loadCategories(keyword='') {
             if(lastAjaxRequest) lastAjaxRequest.abort();
             lastAjaxRequest = new XMLHttpRequest();
-            let url = '/api/categories/product-list?limit=5';
+            let url = '/api/categories/list?limit=5';
             if(keyword) url += '&q=' + encodeURIComponent(keyword);
             lastAjaxRequest.open('GET', url);
             lastAjaxRequest.onreadystatechange = function(){

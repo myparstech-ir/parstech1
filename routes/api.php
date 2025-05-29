@@ -24,3 +24,4 @@ Route::put('/invoices/{id}', [SaleAjaxController::class, 'update']);
 Route::get('/categories/list', [CategoryController::class, 'list']);
 Route::get('/categories', [CategoryApiController::class, 'index']);
 Route::get('/categories/product-list', [CategoryApiController::class, 'productList']);
+Route::get('/categories/list', [CategoryApiController::class, 'list']);
