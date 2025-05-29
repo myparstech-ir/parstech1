@@ -333,7 +333,7 @@ Route::get('/api/customers/search', function(Request $request) {
     return response()->json($results);
 })->middleware(['web', 'auth']); // یا فقط 'web' اگر احراز هویت نمی‌خواهی
 
-Route::resource('persons', \App\Http\Controllers\PersonController::class);
+
 Route::get('persons/next-code', [PersonController::class, 'nextCode'])->name('persons.next-code');
 
 Route::resource('sales', SaleController::class);
