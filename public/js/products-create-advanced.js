@@ -1,3 +1,5 @@
+// products-create-advanced.js
+
 // تبدیل اعداد لاتین به فارسی
 function toPersianNumber(str) {
     if (!str) return '';
@@ -122,57 +124,122 @@ document.addEventListener('DOMContentLoaded', function () {
     handleBarcodeBtn('generate-barcode-btn', 'barcode-field');
     handleBarcodeBtn('generate-store-barcode-btn', 'store-barcode-field');
 
-    // دسته‌بندی جستجویی (select2 ajax)
-    if (window.jQuery && $('#category-select2').length) {
-        $('#category-select2').select2({
-            dir: "rtl",
-            width: "100%",
-            placeholder: "جستجو یا انتخاب دسته‌بندی...",
-            ajax: {
-                url: "/api/categories/search",
-                dataType: 'json',
-                delay: 200,
-                data: function (params) { return { q: params.term }; },
-                processResults: function (data) {
-                    return {
-                        results: data.items.map(function (item) {
-                            return { id: item.id, text: item.name };
-                        })
-                    };
-                },
-                cache: true
-            },
-            minimumInputLength: 0,
-            language: {
-                noResults: function() { return "دسته‌ای پیدا نشد"; }
+    // دسته‌بندی جستجویی (کاملا بدون وابستگی به Select2 و jQuery، فقط JS و AJAX)
+    (function(){
+        const categoryInput = document.getElementById('category-select2');
+        if (!categoryInput) return;
+        // ساخت عنصر جستجو و لیست
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-category-wrapper';
+        wrapper.style.position = 'relative';
+
+        categoryInput.parentNode.insertBefore(wrapper, categoryInput);
+        wrapper.appendChild(categoryInput);
+
+        const dropdown = document.createElement('div');
+        dropdown.className = 'custom-category-dropdown';
+        dropdown.style.position = 'absolute';
+        dropdown.style.top = '100%';
+        dropdown.style.right = 0;
+        dropdown.style.left = 0;
+        dropdown.style.zIndex = 1000;
+        dropdown.style.background = '#fff';
+        dropdown.style.border = '1px solid #cfe2ff';
+        dropdown.style.borderRadius = '9px';
+        dropdown.style.boxShadow = '0 2px 12px #2563eb15';
+        dropdown.style.display = 'none';
+        dropdown.style.maxHeight = '240px';
+        dropdown.style.overflowY = 'auto';
+        dropdown.style.padding = '0';
+        wrapper.appendChild(dropdown);
+
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'form-control';
+        searchInput.placeholder = 'جستجو در دسته‌بندی...';
+        searchInput.style.margin = '10px 10px 5px 10px';
+        dropdown.appendChild(searchInput);
+
+        const list = document.createElement('ul');
+        list.style.listStyle = 'none';
+        list.style.margin = '0 0 10px 0';
+        list.style.padding = '0';
+        dropdown.appendChild(list);
+
+        let lastAjaxRequest = null;
+        // تابع بارگذاری دسته‌بندی‌ها
+        function loadCategories(keyword='') {
+            if(lastAjaxRequest) lastAjaxRequest.abort();
+            lastAjaxRequest = new XMLHttpRequest();
+            let url = '/api/categories/list?limit=5';
+            if(keyword) url += '&q=' + encodeURIComponent(keyword);
+            lastAjaxRequest.open('GET', url);
+            lastAjaxRequest.onreadystatechange = function(){
+                if(this.readyState===4 && this.status===200){
+                    let data = [];
+                    try { data = JSON.parse(this.responseText); } catch(e) {}
+                    list.innerHTML = '';
+                    if(data && data.items && data.items.length){
+                        data.items.forEach(function(cat){
+                            const li = document.createElement('li');
+                            li.style.padding = '6px 12px';
+                            li.style.cursor = 'pointer';
+                            li.style.transition = '.12s';
+                            li.textContent = cat.name;
+                            li.onclick = function(){
+                                // مقداردهی و بستن لیست
+                                categoryInput.value = cat.id;
+                                // اگر option نبود اضافه شود و انتخاب شود
+                                let opt = Array.from(categoryInput.options).find(o=>o.value==cat.id);
+                                if(!opt){
+                                    opt = document.createElement('option');
+                                    opt.value = cat.id;
+                                    opt.textContent = cat.name;
+                                    categoryInput.appendChild(opt);
+                                }
+                                categoryInput.value = cat.id;
+                                dropdown.style.display = 'none';
+                            };
+                            li.onmouseenter = function(){ li.style.background='#e3f0ff'; };
+                            li.onmouseleave = function(){ li.style.background=''; };
+                            list.appendChild(li);
+                        });
+                    } else {
+                        const li = document.createElement('li');
+                        li.style.padding = '6px 12px';
+                        li.textContent = 'هیچ دسته‌بندی پیدا نشد';
+                        list.appendChild(li);
+                    }
+                }
+            };
+            lastAjaxRequest.send();
+        }
+
+        // نمایش لیست با دسته‌های اخیر
+        categoryInput.addEventListener('focus', function(){
+            dropdown.style.display = 'block';
+            searchInput.value = '';
+            loadCategories('');
+            setTimeout(()=>searchInput.focus(), 100);
+        });
+
+        // بستن لیست روی کلیک بیرون
+        document.addEventListener('click', function(e){
+            if(!wrapper.contains(e.target)){
+                dropdown.style.display = 'none';
             }
         });
 
-        // لیست دسته‌بندی پرتکرار
-        $('#category-select2').on('select2:open', function () {
-            $.ajax({
-                url: '/api/categories/popular',
-                dataType: 'json',
-                success: function (data) {
-                    let $results = $('.select2-results');
-                    if (data.items && data.items.length) {
-                        let html = '<div class="select2-quick-list" style="padding:10px"><strong>پرتکرار/آخرین‌ها:</strong><ul style="list-style:none;margin:0;padding:0">';
-                        data.items.forEach(function (cat) {
-                            html += '<li><a href="#" class="select2-quick-cat" data-id="'+cat.id+'">'+cat.name+'</a></li>';
-                        });
-                        html += '</ul></div>';
-                        $results.prepend(html);
-                        $('.select2-quick-cat').on('click', function(e){
-                            e.preventDefault();
-                            let id = $(this).data('id');
-                            $('#category-select2').val(id).trigger('change');
-                            $('#category-select2').select2("close");
-                        });
-                    }
-                }
-            });
+        // جستجو هنگام تایپ
+        searchInput.addEventListener('input', function(){
+            loadCategories(this.value);
         });
-    }
+
+        // با کلید Esc بستن
+        searchInput.addEventListener('keydown', function(e){
+            if(e.key==='Escape'){ dropdown.style.display = 'none'; }
+        });
+    })();
 
     // تاریخ شمسی
     if (window.jQuery && $('#expire_date_picker').length) {

@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@babakhani/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css"/>
     <style>
         #main-content {
@@ -17,76 +18,12 @@
             #main-content { margin-right: 0 !important; padding: 6px !important; }
         }
         .swal2-popup { font-family: Vazirmatn, Tahoma, Arial, sans-serif !important; }
-        .cat-dropdown-container {
-            position: relative;
-            width: 100%;
-        }
-        .cat-dropdown-selected {
-            min-height: 48px;
-            border-radius: 9px;
-            border:1.5px solid #cfe2ff;
-            padding: 10px 38px 10px 38px;
-            background: #fafbfc;
-            font-size: 1.09rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .cat-dropdown-selected:after {
-            content: "\f282";
-            font-family: bootstrap-icons;
-            font-size: 1.1rem;
-            color: #1976d2;
-            margin-right: 8px;
-        }
-        .cat-dropdown-list {
-            display: none;
-            position: absolute;
-            right: 0; left: 0;
-            background: #fff;
-            border: 1.5px solid #cfe2ff;
-            border-radius: 0 0 9px 9px;
-            z-index: 999;
-            box-shadow: 0 10px 30px #2563eb14;
-        }
-        .cat-dropdown-list.active {
-            display: block;
-        }
-        .cat-dropdown-search {
-            border: none;
-            border-bottom: 1.2px solid #cfe2ff;
-            width: 100%;
-            padding: 8px 12px;
-            font-size: 1.03rem;
-            outline: none;
-            direction: rtl;
-            background: #f5f9ff;
-        }
-        .cat-dropdown-item {
-            padding: 9px 18px;
-            cursor: pointer;
-            font-size: 1.07rem;
-            color: #1d3557;
-            transition: background 0.15s;
-            text-align: right;
-        }
-        .cat-dropdown-item:hover,
-        .cat-dropdown-item.selected {
-            background: #e5f4ff;
-            color: #1976d2;
-        }
-        .cat-dropdown-empty {
-            padding: 10px;
-            color: #888;
-            font-size: 1rem;
-        }
-        .cat-dropdown-add-btn {
-            position: absolute;
-            left: 9px;
-            top: 7px;
-            z-index: 1000;
-        }
+        .select2-container--default .select2-selection--single { border-radius: 9px; border:1.5px solid #cfe2ff; min-height: 48px;}
+        .select2-selection__rendered { text-align: right; }
+        .select2-dropdown { text-align: right; direction: rtl; }
+        .select2-quick-list ul { padding:0; margin:0;}
+        .select2-quick-list li { margin: 2px 0;}
+        .select2-quick-list a { color: #1976d2; font-weight: bold; }
     </style>
 @endsection
 
@@ -114,6 +51,7 @@
                         <form id="product-form" action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" autocomplete="off">
                             @csrf
 
+                            <!-- فقط دو پارامتر در هر ردیف -->
                             <div class="row gx-3 gy-3 mb-4 align-items-end flex-wrap">
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-type"></i> نام محصول <span class="text-danger">*</span></label>
@@ -153,15 +91,12 @@
                                 </div>
                                 <div class="col-12 col-md-6 position-relative">
                                     <label class="form-label fw-bold"><i class="bi bi-list-task"></i> دسته‌بندی <span class="text-danger">*</span></label>
-                                    <div class="cat-dropdown-container" id="cat-dropdown-container">
-                                        <input type="hidden" name="category_id" id="category_id_real" value="{{ old('category_id') }}">
-                                        <div class="cat-dropdown-selected" id="cat-dropdown-selected">انتخاب کنید...</div>
-                                        <div class="cat-dropdown-list" id="cat-dropdown-list">
-                                            <input type="text" class="cat-dropdown-search" id="cat-dropdown-search" placeholder="جستجو...">
-                                            <div id="cat-dropdown-items"></div>
-                                        </div>
-                                        <a href="{{ route('categories.create') }}" target="_blank" class="btn btn-outline-success cat-dropdown-add-btn"><i class="bi bi-plus-circle"></i></a>
-                                    </div>
+                                    <select name="category_id" id="category-select2" class="form-select form-select-lg" required>
+                                        @if(old('category_id'))
+                                            <option value="{{ old('category_id') }}" selected>دسته‌بندی انتخاب شده قبلی</option>
+                                        @endif
+                                    </select>
+                                    <a href="{{ route('categories.create') }}" target="_blank" class="btn btn-outline-success ms-2 position-absolute" style="top: 41px; left: 0;"><i class="bi bi-plus-circle"></i></a>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold"><i class="bi bi-123"></i> کد حسابداری</label>
@@ -180,10 +115,202 @@
                                     <textarea name="tech_desc" class="form-control form-control-lg" rows="2">{{ old('tech_desc') }}</textarea>
                                 </div>
                             </div>
-                            ... <!-- بقیه فرم و تب‌ها مثل قبل -->
+
+                            <ul class="nav nav-tabs nav-tabs-rtl mb-4" id="productTab" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="main-tab" data-bs-toggle="tab" data-bs-target="#mainTabPane" type="button" role="tab" aria-controls="mainTabPane" aria-selected="true">
+                                        <i class="bi bi-info-circle"></i> اطلاعات تکمیلی
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="media-tab" data-bs-toggle="tab" data-bs-target="#mediaTabPane" type="button" role="tab" aria-controls="mediaTabPane" aria-selected="false">
+                                        <i class="bi bi-images"></i> رسانه و فایل‌ها
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="desc-tab" data-bs-toggle="tab" data-bs-target="#descTabPane" type="button" role="tab" aria-controls="descTabPane" aria-selected="false">
+                                        <i class="bi bi-file-earmark-text"></i> توضیحات و ویژگی‌ها
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="shareholder-tab" data-bs-toggle="tab" data-bs-target="#shareholderTabPane" type="button" role="tab" aria-controls="shareholderTabPane" aria-selected="false">
+                                        <i class="bi bi-people"></i> سهامداران
+                                    </button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="productTabContent">
+                                <div class="tab-pane fade show active" id="mainTabPane" role="tabpanel" aria-labelledby="main-tab">
+                                    <div class="row gy-3 mb-3">
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label">برند</label>
+                                            <div class="input-group">
+                                                <select name="brand_id" class="form-select">
+                                                    <option value="">بدون برند</option>
+                                                    @foreach($brands as $brand)
+                                                        <option value="{{ $brand->id }}" @if(old('brand_id')==$brand->id) selected @endif>{{ $brand->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <a href="{{ route('brands.create') }}" target="_blank" class="btn btn-outline-primary">برند جدید</a>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label">واحد اندازه‌گیری</label>
+                                            <select name="unit" id="selected-unit" class="form-select">
+                                                <option value="">انتخاب کنید...</option>
+                                                @foreach($units as $unit)
+                                                    <option value="{{ $unit->title }}" @if(old('unit')==$unit->title) selected @endif>{{ $unit->title }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="button" class="btn btn-outline-info mt-2 w-100" data-bs-toggle="modal" data-bs-target="#unitModal">مدیریت واحدها</button>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label">وزن (گرم)</label>
+                                            <input type="text" name="weight" class="form-control persian-number" value="{{ old('weight') }}">
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label">بارکد محصول</label>
+                                            <div class="input-group">
+                                                <input type="text" name="barcode" id="barcode-field" class="form-control persian-number" value="{{ old('barcode') }}">
+                                                <button type="button" class="btn btn-outline-primary" id="generate-barcode-btn" data-target="barcode-field">تولید بارکد استاندارد</button>
+                                            </div>
+                                            <small class="barcode-status"></small>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label">بارکد فروشگاهی</label>
+                                            <div class="input-group">
+                                                <input type="text" name="store_barcode" id="store-barcode-field" class="form-control persian-number" value="{{ old('store_barcode') }}">
+                                                <button type="button" class="btn btn-outline-secondary" id="generate-store-barcode-btn" data-target="store-barcode-field">تولید بارکد فروشگاهی</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-check form-switch pt-4">
+                                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                                <label class="form-check-label ms-2" for="is_active">فعال باشد</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="mediaTabPane" role="tabpanel" aria-labelledby="media-tab">
+                                    <div class="row gy-3 mb-2">
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label">تصویر شاخص محصول</label>
+                                            <input type="file" name="image" class="form-control" accept="image/*">
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label">ویدیوی معرفی محصول</label>
+                                            <input type="file" name="video" class="form-control" accept="video/*">
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label">گالری تصاویر</label>
+                                            <div id="gallery-dropzone" class="dropzone"></div>
+                                            <input type="hidden" name="gallery[]" id="gallery-input">
+                                            <small class="text-muted">حداکثر ۵ تصویر، هر تصویر کمتر از ۲ مگابایت.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="descTabPane" role="tabpanel" aria-labelledby="desc-tab">
+                                    <div class="row gy-3 mb-2">
+                                        <div class="col-12">
+                                            <label class="form-label">توضیحات کوتاه</label>
+                                            <textarea name="short_desc" class="form-control" rows="2">{{ old('short_desc') }}</textarea>
+                                        </div>
+                                        <div class="col-12 mt-3">
+                                            <label class="form-label">توضیحات کامل</label>
+                                            <textarea name="description" class="form-control" rows="6">{{ old('description') }}</textarea>
+                                        </div>
+                                        <div class="col-12 mt-3">
+                                            <label class="form-label">ویژگی‌های محصول</label>
+                                            <div id="attributes-area"></div>
+                                            <button type="button" class="btn btn-outline-success mt-2" id="add-attribute"><i class="bi bi-plus"></i> افزودن ویژگی</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="shareholderTabPane" role="tabpanel" aria-labelledby="shareholder-tab">
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <label class="form-label"><b>تخصیص سهم سهامداران برای این محصول</b></label>
+                                            <div class="alert alert-light border shadow-sm mb-2">
+                                                <small>
+                                                    اگر هیچ سهامداری انتخاب نشود، سهم محصول به طور مساوی بین همه سهامداران تقسیم می‌شود.<br>
+                                                    اگر فقط یک نفر انتخاب شود، کل محصول برای او خواهد بود.<br>
+                                                    اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی ماند به طور خودکار تقسیم می‌شود).
+                                                </small>
+                                            </div>
+                                            @if(isset($shareholders) && count($shareholders))
+                                                <div class="row" id="shareholder-list">
+                                                    @foreach($shareholders as $shareholder)
+                                                        <div class="col-12 mb-2">
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <div class="input-group-text">
+                                                                        <input type="checkbox"
+                                                                            name="shareholder_ids[]"
+                                                                            value="{{ $shareholder->id }}"
+                                                                            id="sh-{{ $shareholder->id }}"
+                                                                            class="shareholder-checkbox"
+                                                                        >
+                                                                    </div>
+                                                                </div>
+                                                                <input type="number"
+                                                                    name="shareholder_percents[{{ $shareholder->id }}]"
+                                                                    id="percent-{{ $shareholder->id }}"
+                                                                    class="form-control shareholder-percent"
+                                                                    min="0" max="100" step="0.01"
+                                                                    placeholder="درصد سهم"
+                                                                    disabled
+                                                                >
+                                                                <div class="input-group-append">
+                                                                    <span class="input-group-text">{{ $shareholder->full_name }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <div class="alert alert-warning mt-2">هیچ سهامداری ثبت نشده است.</div>
+                                            @endif
+                                            <small class="form-text text-muted" id="percent-warning" style="color:red;display:none"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end mt-4">
+                                <button type="submit" class="btn btn-success btn-lg px-4"><i class="bi bi-check2-circle"></i> ثبت محصول</button>
+                                <a href="{{ route('products.index') }}" class="btn btn-secondary btn-lg px-4">انصراف</a>
+                            </div>
                         </form>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: مدیریت واحد اندازه‌گیری -->
+<div class="modal fade" id="unitModal" tabindex="-1" aria-labelledby="unitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">مدیریت واحدهای اندازه‌گیری</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group" id="units-list">
+                    @foreach($units as $unit)
+                        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ $unit->id }}">
+                            <span class="unit-title">{{ $unit->title }}</span>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-primary edit-unit-btn me-1">ویرایش</button>
+                                <button type="button" class="btn btn-sm btn-danger delete-unit-btn">حذف</button>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+                <hr>
+                <form id="add-unit-form" class="d-flex gap-2 mt-2">
+                    <input type="text" class="form-control" id="unit-title" placeholder="واحد جدید">
+                    <button type="submit" class="btn btn-success">افزودن واحد</button>
+                </form>
             </div>
         </div>
     </div>
@@ -193,6 +320,7 @@
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
     <script src="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone-min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babakhani/persian-date@1.1.0/dist/persian-date.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babakhani/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
