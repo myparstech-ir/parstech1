@@ -328,7 +328,7 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route('products.index')->with('success', 'محصول با موفقیت حذف شد.');
     }
-    public function show(Product $product)
+        public function show(Product $product)
     {
         // اگر جدول category یا brand وابسته است، eager load کن:
         $product->load(['category', 'brand']);

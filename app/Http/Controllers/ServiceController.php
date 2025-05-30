@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Shareholder;
 use Illuminate\Http\Request;
 use App\Models\Service;
 use App\Models\Category;
 use App\Models\Unit;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Person; // این خط را اضافه کن
 
 class ServiceController extends Controller
 {
-
     /**
      * نمایش فرم افزودن خدمت جدید
      */
@@ -21,7 +19,6 @@ class ServiceController extends Controller
         $units = Unit::orderBy('title')->get();
         $shareholders = Person::where('type', 'shareholder')->get();
 
-        // تولید کد خدمت بعدی (کد خودکار)
         $last = Service::where('service_code', 'like', 'services-%')
             ->orderByRaw('CAST(SUBSTRING(service_code, 10) AS UNSIGNED) DESC')
             ->first();
@@ -33,7 +30,6 @@ class ServiceController extends Controller
 
         return view('services.create', compact('serviceCategories', 'units', 'shareholders', 'nextCode'));
     }
-
 
     /**
      * لیست خدمات
@@ -61,10 +57,9 @@ class ServiceController extends Controller
         $services = $query->limit($limit)->get();
 
         $results = $services->map(function ($service) {
-            // محصول معادل را پیدا کن
             $product = \App\Models\Product::where('code', $service->service_code)->first();
             return [
-                'id'         => $product ? $product->id : null, // این id باید id محصول باشد!
+                'id'         => $product ? $product->id : null,
                 'code'       => $service->service_code,
                 'name'       => $service->title,
                 'category'   => $service->category ? $service->category->name : '-',
@@ -83,7 +78,6 @@ class ServiceController extends Controller
      */
     public function nextCode()
     {
-        // همه کدهایی که با services- شروع می‌شوند را بگیر
         $last = Service::where('service_code', 'like', 'services-%')
             ->orderByRaw('CAST(SUBSTRING(service_code, 10) AS UNSIGNED) DESC')
             ->first();
@@ -94,7 +88,6 @@ class ServiceController extends Controller
         }
         return response()->json(['code' => 'services-' . $next]);
     }
-
 
     /**
      * ثبت خدمت جدید
@@ -128,14 +121,44 @@ class ServiceController extends Controller
             $validated['image'] = $request->file('image')->store('services', 'public');
         }
 
-        // واحد باید از unit_id بیاد
         $unit = Unit::find($validated['unit_id']);
         $validated['unit'] = $unit ? $unit->title : null;
 
         $service = Service::create($validated);
 
+        // ذخیره سهامداران و درصد سهم
+        $inputShares = $request->input('shareholders', []);
+        $shareholders = Person::where('type', 'shareholder')->get();
+        $totalShare = 0;
+        $emptyIds = [];
+
+        foreach ($shareholders as $person) {
+            $percent = isset($inputShares[$person->id]) && $inputShares[$person->id] !== null && $inputShares[$person->id] !== '' ? floatval($inputShares[$person->id]) : null;
+            if ($percent === null) {
+                $emptyIds[] = $person->id;
+            } else {
+                $totalShare += $percent;
+            }
+        }
+        // تقسیم باقی‌مانده سهم بین افراد بدون سهم
+        $remain = 100 - $totalShare;
+        $autoPercent = (count($emptyIds) > 0 && $remain > 0) ? round($remain / count($emptyIds), 2) : 0;
+
+        // فرض: Service و Person رابطه many-to-many دارند (و جدول pivot مثلاً service_shareholder دارد)
+        foreach ($shareholders as $person) {
+            $percent = isset($inputShares[$person->id]) && $inputShares[$person->id] !== null && $inputShares[$person->id] !== '' ? floatval($inputShares[$person->id]) : null;
+            if ($percent === null && count($emptyIds) > 0) {
+                $percent = $autoPercent;
+            }
+            if ($percent > 0) {
+                $service->shareholders()->attach($person->id, ['percent' => $percent]);
+            }
+        }
+
         // محصول معادل بساز
-        $service->createOrUpdateProduct();
+        if(method_exists($service, 'createOrUpdateProduct')) {
+            $service->createOrUpdateProduct();
+        }
 
         return redirect()->route('services.index')->with('success', 'خدمات با موفقیت ثبت شد.');
     }
@@ -148,9 +171,8 @@ class ServiceController extends Controller
         $service = Service::findOrFail($id);
         $serviceCategories = Category::where('category_type', 'service')->get();
         $units = Unit::orderBy('title')->get();
-        $shareholders = Shareholder::all();
+        $shareholders = Person::where('type', 'shareholder')->get(); // اینجا هم باید مدل Person باشد
 
-        // تولید کد خدمت بعدی (در اینجا مقداردهی لازم نیست چون کد هر خدمت ثابت است)
         return view('services.edit', compact('service', 'serviceCategories', 'units', 'shareholders'));
     }
 
@@ -182,13 +204,10 @@ class ServiceController extends Controller
         ]);
         if (!isset($data['is_active'])) $data['is_active'] = true;
 
-        // واحد باید از unit_id بیاد
         $unit = Unit::find($data['unit_id']);
         $data['unit'] = $unit ? $unit->title : null;
 
-        // اگر عکس جدید آپلود شده
         if ($request->hasFile('image')) {
-            // حذف تصویر قبلی (در صورت وجود)
             if ($service->image) {
                 \Storage::disk('public')->delete($service->image);
             }
@@ -197,7 +216,6 @@ class ServiceController extends Controller
 
         $service->update($data);
 
-        // محصول معادل بروزرسانی شود
         $service->createOrUpdateProduct();
 
         return redirect()->route('services.index')->with('success', 'خدمت با موفقیت ویرایش شد.');
@@ -212,6 +230,18 @@ class ServiceController extends Controller
         $service->delete();
         return redirect()->route('services.index')->with('success', 'خدمت با موفقیت حذف شد.');
     }
+    public function addUnit(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255|unique:units,title'
+        ]);
+        $unit = new Unit();
+        $unit->title = $request->title;
+        $unit->save();
 
-    // سایر متدها مثل saveForm و ...
+        return response()->json([
+            'id' => $unit->id,
+            'title' => $unit->title,
+        ]);
+    }
 }

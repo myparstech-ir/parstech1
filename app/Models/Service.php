@@ -10,20 +10,15 @@ class Service extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title',
-        'service_code',
-        'service_info',
-        'service_category_id',
-        'price',
-        'unit_id',
-        'unit',
-        'short_description',
-        'description',
-        'info_link',
-        'full_description',
-        'image',
-        'is_active',
+        'title', 'service_code', 'service_category_id', 'unit_id', 'unit', 'price', 'tax', 'execution_cost',
+        'short_description', 'description', 'image', 'is_active', 'is_vat_included', 'is_discountable',
+        'service_info', 'info_link', 'full_description'
     ];
+    public function shareholders()
+    {
+        return $this->belongsToMany(Person::class, 'service_shareholder', 'service_id', 'person_id')
+            ->withPivot('percent');
+    }
 
     public function category()
     {
