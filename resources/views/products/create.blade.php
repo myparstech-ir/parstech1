@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone.css" />
-    <link rel="stylesheet" href="{{ asset('js/persian-datepicker.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/persian-datepicker.min.css') }}">
 @endsection
 
 @section('content')
