@@ -33,7 +33,6 @@
 
                         <form id="product-form" action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" autocomplete="off">
                             @csrf
-
                             <div class="product-main-fields-row">
                                 <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-type"></i> نام محصول <span class="text-danger">*</span></label>
@@ -42,7 +41,9 @@
                                 <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-upc-scan"></i> کد کالا</label>
                                     <div class="input-group">
-                                        <input type="text" name="code" id="product-code" class="form-control" value="{{ old('code', $default_code ?? 'product-1001') }}" readonly>
+                                        <input type="text" name="code" id="product-code" class="form-control"
+                                               value="{{ old('code', $default_code ?? 'product-1001') }}"
+                                               readonly data-default="{{ $default_code ?? 'product-1001' }}">
                                         <span class="input-group-text p-0 px-1">
                                             <input class="form-check-input m-0" type="checkbox" id="code-edit-switch">
                                         </span>
@@ -291,6 +292,25 @@
                 autoClose: true,
                 initialValue: false
             });
+
+            // کنترل سوییچ کد کالا
+            const codeSwitch = document.getElementById('code-edit-switch');
+            const codeInput = document.getElementById('product-code');
+            const codeDefault = codeInput ? codeInput.getAttribute('data-default') : 'product-1001';
+            if (codeSwitch && codeInput) {
+                codeSwitch.addEventListener('change', function () {
+                    codeInput.readOnly = !this.checked;
+                    if(this.checked){
+                        codeInput.value = '';
+                        codeInput.focus();
+                    } else {
+                        codeInput.value = codeDefault;
+                    }
+                });
+                // مقدار اولیه
+                codeInput.readOnly = true;
+                codeInput.value = codeDefault;
+            }
         });
     </script>
 @endsection
