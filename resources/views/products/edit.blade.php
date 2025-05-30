@@ -50,33 +50,67 @@
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-cash-stack"></i> قیمت خرید</label>
                         <div class="input-group">
-                            <input type="text" name="buy_price" class="form-control persian-number" required value="{{ old('buy_price', $product->buy_price) }}">
+                            <input type="text" name="buy_price"
+                                class="form-control english-number"
+                                required
+                                pattern="^\d*(\.\d{0,2})?$"
+                                inputmode="decimal"
+                                autocomplete="off"
+                                value="{{ old('buy_price', $product->buy_price) }}">
                             <span class="input-group-text">تومان</span>
                         </div>
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-currency-dollar"></i> قیمت فروش</label>
                         <div class="input-group">
-                            <input type="text" name="sell_price" class="form-control persian-number" required value="{{ old('sell_price', $product->sell_price) }}">
+                            <input type="text" name="sell_price"
+                                class="form-control english-number"
+                                required
+                                pattern="^\d*(\.\d{0,2})?$"
+                                inputmode="decimal"
+                                autocomplete="off"
+                                value="{{ old('sell_price', $product->sell_price) }}">
                             <span class="input-group-text">تومان</span>
                         </div>
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-percent"></i> تخفیف (%)</label>
-                        <input type="text" name="discount" class="form-control persian-number" value="{{ old('discount', $product->discount) }}">
+                        <input type="text" name="discount"
+                            class="form-control english-number"
+                            pattern="^\d*(\.\d{0,2})?$"
+                            inputmode="decimal"
+                            autocomplete="off"
+                            value="{{ old('discount', $product->discount) }}">
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-box"></i> موجودی اولیه</label>
-                        <input type="text" name="stock" class="form-control persian-number" value="{{ old('stock', $product->stock) }}">
+                        <input type="text" name="stock"
+                            class="form-control english-number"
+                            pattern="^\d*(\.\d{0,2})?$"
+                            inputmode="decimal"
+                            autocomplete="off"
+                            value="{{ old('stock', $product->stock) }}">
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-exclamation-triangle"></i> هشدار موجودی</label>
-                        <input type="text" name="stock_alert" class="form-control persian-number" value="{{ old('stock_alert', $product->stock_alert) }}">
-                        <small class="text-muted">در صورت رسیدن موجودی به این عدد، هشدار نمایش داده می‌شود.</small>
+                        <input type="text" name="stock_alert"
+                            class="form-control english-number"
+                            pattern="^\d*(\.\d{0,2})?$"
+                            inputmode="decimal"
+                            autocomplete="off"
+                            value="{{ old('stock_alert', $product->stock_alert) }}">
+                        <small class="text-muted">
+                            در صورت رسیدن موجودی به این عدد، هشدار نمایش داده می‌شود.
+                        </small>
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-cart-plus"></i> حداقل سفارش</label>
-                        <input type="text" name="min_order_qty" class="form-control persian-number" value="{{ old('min_order_qty', $product->min_order_qty) }}">
+                        <input type="text" name="min_order_qty"
+                            class="form-control english-number"
+                            pattern="^\d*(\.\d{0,2})?$"
+                            inputmode="decimal"
+                            autocomplete="off"
+                            value="{{ old('min_order_qty', $product->min_order_qty) }}">
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-list-task"></i> دسته‌بندی <span class="text-danger">*</span></label>
@@ -98,7 +132,9 @@
                     <div class="col-12 col-md-6">
                         <div class="form-check form-switch pt-4">
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }}>
-                            <label class="form-check-label ms-2" for="is_active">فعال باشد</label>
+                            <label class="form-check-label ms-2" for="is_active">
+                                فعال باشد
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -153,12 +189,12 @@
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label">وزن (گرم)</label>
-                                <input type="text" name="weight" class="form-control persian-number" value="{{ old('weight', $product->weight) }}">
+                                <input type="text" name="weight" class="form-control english-number" pattern="^\d*(\.\d{0,2})?$" inputmode="decimal" value="{{ old('weight', $product->weight) }}">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label">بارکد محصول</label>
                                 <div class="input-group">
-                                    <input type="text" name="barcode" id="barcode-field" class="form-control persian-number" value="{{ old('barcode', $product->barcode) }}">
+                                    <input type="text" name="barcode" id="barcode-field" class="form-control english-number" value="{{ old('barcode', $product->barcode) }}">
                                     <button type="button" class="btn btn-outline-primary" id="generate-barcode-btn" data-target="barcode-field">ساخت بارکد</button>
                                 </div>
                                 <span class="barcode-status"></span>
@@ -166,7 +202,7 @@
                             <div class="col-12 col-md-6">
                                 <label class="form-label">بارکد فروشگاهی</label>
                                 <div class="input-group">
-                                    <input type="text" name="store_barcode" id="store-barcode-field" class="form-control persian-number" value="{{ old('store_barcode', $product->store_barcode) }}">
+                                    <input type="text" name="store_barcode" id="store-barcode-field" class="form-control english-number" value="{{ old('store_barcode', $product->store_barcode) }}">
                                     <button type="button" class="btn btn-outline-secondary" id="generate-store-barcode-btn" data-target="store-barcode-field">ساخت بارکد فروشگاه</button>
                                 </div>
                                 <span class="barcode-status"></span>
@@ -203,7 +239,9 @@
                                     </div>
                                 @endif
                                 <input type="file" class="form-control" name="gallery[]" id="gallery" multiple accept="image/*">
-                                <small class="text-muted">حداکثر ۵ تصویر، هر تصویر کمتر از ۲ مگابایت.</small>
+                                <small class="text-muted">
+                                    حداکثر ۵ تصویر، هر تصویر کمتر از ۲ مگابایت.
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -248,7 +286,7 @@
                                     <small>
                                         اگر هیچ سهامداری انتخاب نشود، سهم محصول به طور مساوی بین همه سهامداران تقسیم می‌شود.<br>
                                         اگر فقط یک نفر انتخاب شود، کل محصول برای او خواهد بود.<br>
-                                        اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی بگذارید به طور مساوی تقسیم می‌شود).
+                                        اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید 100 باشد، اگر خالی بگذارید به طور مساوی تقسیم می‌شود).
                                     </small>
                                 </div>
                                 @if(isset($shareholders) && count($shareholders))
@@ -270,7 +308,7 @@
                                                     <input type="text"
                                                         name="shareholder_percents[{{ $shareholder->id }}]"
                                                         id="percent-{{ $shareholder->id }}"
-                                                        class="form-control shareholder-percent persian-number"
+                                                        class="form-control shareholder-percent english-number"
                                                         min="0" max="100" step="0.01"
                                                         placeholder="درصد سهم"
                                                         value="{{ old('shareholder_percents.'.$shareholder->id, $product->shareholders->firstWhere('id',$shareholder->id)?->pivot->percent ?? '') }}"
@@ -293,7 +331,9 @@
                 </div>
                 <div class="text-end mt-4">
                     <button type="submit" class="btn btn-success btn-lg px-4"><i class="bi bi-check2-circle"></i> ذخیره تغییرات</button>
-                    <a href="{{ route('products.index') }}" class="btn btn-secondary btn-lg px-4">انصراف</a>
+                    <a href="{{ route('products.index') }}" class="btn btn-secondary btn-lg px-4">
+                        انصراف
+                    </a>
                 </div>
             </form>
         </div>
@@ -310,7 +350,7 @@
     <script src="{{ asset('js/persian-datepicker.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
     <script src="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone-min.js"></script>
-    <script src="{{ asset('js/products-create-advanced.js') }}"></script>
+
     <script>
         $(function() {
             // تاریخ شمسی
@@ -324,6 +364,7 @@
                 autoClose: true,
                 initialValue: false
             });
+
             // کنترل سوییچ کد کالا
             const codeSwitch = document.getElementById('code-edit-switch');
             const codeInput = document.getElementById('product-code');
@@ -341,6 +382,7 @@
                 codeInput.readOnly = true;
                 codeInput.value = codeDefault;
             }
+
             // فعال/غیرفعال کردن input درصد سهامدار
             $('.shareholder-checkbox').on('change', function(){
                 let input = $('#percent-' + $(this).val());
@@ -349,6 +391,21 @@
                 }else{
                     input.prop('disabled', true).val('');
                 }
+            });
+
+            // جلوگیری از ورود اعداد فارسی و تبدیل سریع به انگلیسی (و فقط یک نقطه)
+            $(document).on('input', '.english-number', function() {
+                let val = $(this).val();
+                // تبدیل اعداد فارسی به انگلیسی
+                val = val.replace(/[۰-۹]/g, function(d){ return String.fromCharCode(d.charCodeAt(0)-1728); });
+                // حذف هر چیز غیر از عدد و نقطه
+                val = val.replace(/[^0-9.]/g, '');
+                // فقط یک نقطه
+                let parts = val.split('.');
+                if(parts.length > 2){
+                    val = parts[0] + '.' + parts[1];
+                }
+                $(this).val(val);
             });
         });
     </script>
