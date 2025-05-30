@@ -59,10 +59,12 @@ html, body {
     font-weight: bold;
 }
 .product-title {
-    margin: 0;
-    font-size: 1.22rem;
-    color: var(--pc-secondary);
+    font-size: 1.3rem;
     font-weight: bold;
+}
+.card.product-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
 }
 .product-main-fields-row {
     display: flex;
