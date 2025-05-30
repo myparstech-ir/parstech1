@@ -3,32 +3,20 @@
 
 @section('head')
     <link rel="stylesheet" href="{{ asset('css/products-create.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/products-create-advanced.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone.css" />
-    <link rel="stylesheet" href="{{ asset('css/persian-datepicker.min.css') }}">
-    <style>
-        #main-content {
-            margin-right: 138px;
-            padding: 15px;
-            transition: all .3s;
-        }
-        @media (max-width: 991px) {
-            #main-content { margin-right: 0 !important; padding: 6px !important; }
-        }
-        .swal2-popup { font-family: Vazirmatn, Tahoma, Arial, sans-serif !important; }
-        .persian-number { direction: rtl; text-align: right; }
-        input[readonly] { background-color: #f7f7f7; }
-    </style>
+    <link rel="stylesheet" href="{{ asset('js/persian-datepicker.min.css') }}">
 @endsection
 
 @section('content')
 <div class="container-fluid product-create-page-advanced p-0">
     <div class="row g-0">
         @include('layouts.sidebar')
-        <div id="main-content" class="main-content-advanced col-12 col-lg">
-            <div class="product-form-outer d-flex justify-content-center align-items-start" style="min-height:100vh;">
-                <div class="card shadow-lg mt-4 mb-5 w-100" style="max-width: 800px;">
+        <div id="main-content" class="main-content-advanced">
+            <div class="product-form-outer">
+                <div class="card shadow-lg">
                     <div class="card-header product-header">
                         <h1 class="product-title"><i class="bi bi-plus-circle-dotted me-2"></i>افزودن محصول جدید</h1>
                     </div>
@@ -46,82 +34,65 @@
                         <form id="product-form" action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" autocomplete="off">
                             @csrf
 
-                            <!-- دو به دو در هر ردیف و ریسپانسیو -->
-                            <div class="row gx-3 gy-3 mb-4 align-items-end flex-wrap">
-                                <div class="col-12 col-md-6">
+                            <div class="product-main-fields-row">
+                                <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-type"></i> نام محصول <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" class="form-control form-control-lg" required value="{{ old('name') }}" autofocus>
+                                    <input type="text" name="name" class="form-control" required value="{{ old('name') }}" autofocus>
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-upc-scan"></i> کد کالا</label>
                                     <div class="input-group">
-                                        <input type="text" name="code" id="product-code" class="form-control form-control-lg" value="{{ old('code', $default_code ?? 'product-1001') }}" readonly>
-                                        <span class="input-group-text">
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input" type="checkbox" id="code-edit-switch">
-                                            </div>
+                                        <input type="text" name="code" id="product-code" class="form-control" value="{{ old('code', $default_code ?? 'product-1001') }}" readonly>
+                                        <span class="input-group-text p-0 px-1">
+                                            <input class="form-check-input m-0" type="checkbox" id="code-edit-switch">
                                         </span>
                                     </div>
-                                    <small class="text-muted">برای محصول سفارشی، سوییچ را فعال کن تا امکان ویرایش کد فراهم شود.</small>
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-cash-stack"></i> قیمت خرید</label>
                                     <div class="input-group">
-                                        <input type="text" name="buy_price" class="form-control form-control-lg persian-number" required value="{{ old('buy_price') }}">
+                                        <input type="text" name="buy_price" class="form-control persian-number" required value="{{ old('buy_price') }}">
                                         <span class="input-group-text">تومان</span>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-currency-dollar"></i> قیمت فروش</label>
                                     <div class="input-group">
-                                        <input type="text" name="sell_price" class="form-control form-control-lg persian-number" required value="{{ old('sell_price') }}">
+                                        <input type="text" name="sell_price" class="form-control persian-number" required value="{{ old('sell_price') }}">
                                         <span class="input-group-text">تومان</span>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-percent"></i> تخفیف (%)</label>
-                                    <input type="text" name="discount" class="form-control form-control-lg persian-number" value="{{ old('discount') }}">
+                                    <input type="text" name="discount" class="form-control persian-number" value="{{ old('discount') }}">
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-box"></i> موجودی اولیه</label>
-                                    <input type="text" name="stock" class="form-control form-control-lg persian-number" value="{{ old('stock', 1) }}">
+                                    <input type="text" name="stock" class="form-control persian-number" value="{{ old('stock', 1) }}">
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <label class="form-label fw-bold"><i class="bi bi-exclamation-triangle"></i> حداقل هشدار</label>
-                                    <input type="text" name="min_stock" class="form-control form-control-lg persian-number" value="{{ old('min_stock', 0) }}">
+                                <div class="main-field-col">
+                                    <label class="form-label fw-bold"><i class="bi bi-cart-plus"></i> حداقل سفارش</label>
+                                    <input type="text" name="min_order_qty" class="form-control persian-number" value="{{ old('min_order_qty', 1) }}">
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-list-task"></i> دسته‌بندی <span class="text-danger">*</span></label>
-                                    <select name="category_id" class="form-select form-select-lg" required>
+                                    <select name="category_id" class="form-select" required>
                                         <option value="">انتخاب کنید...</option>
                                         @foreach($categories as $cat)
                                             <option value="{{ $cat->id }}" @if(old('category_id')==$cat->id) selected @endif>{{ $cat->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> تاریخ انقضا</label>
-                                    <input type="text" name="expire_date" id="expire_date_picker" class="form-control form-control-lg" value="{{ old('expire_date') }}">
+                                <div class="main-field-col">
+                                    <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> تاریخ انقضا (اختیاری)</label>
+                                    <input type="text" name="expire_date" id="expire_date_picker" class="form-control" value="{{ old('expire_date') }}" autocomplete="off">
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="main-field-col">
                                     <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> تاریخ افزودن محصول</label>
-                                    <input type="text" name="added_at" id="added_at_picker" class="form-control form-control-lg" value="{{ old('added_at', \Morilog\Jalali\Jalalian::now()->format('Y/m/d')) }}">
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <label class="form-label fw-bold"><i class="bi bi-cart-plus"></i> حداقل مقدار سفارش</label>
-                                    <input type="text" name="min_order_qty" class="form-control form-control-lg persian-number" value="{{ old('min_order_qty', 1) }}">
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <label class="form-label fw-bold"><i class="bi bi-bar-chart-steps"></i> گروه قیمت</label>
-                                    <input type="text" name="price_group" class="form-control form-control-lg" value="{{ old('price_group') }}">
-                                </div>
-                                <div class="col-12 col-md-12">
-                                    <label class="form-label fw-bold"><i class="bi bi-tools"></i> توضیحات فنی (برای کاتالوگ/فروشگاه)</label>
-                                    <textarea name="tech_desc" class="form-control form-control-lg" rows="2">{{ old('tech_desc') }}</textarea>
+                                    <input type="text" name="added_at" id="added_at_picker" class="form-control" value="{{ old('added_at', '') }}" autocomplete="off">
                                 </div>
                             </div>
 
-                            <!-- تب‌ها -->
                             <ul class="nav nav-tabs nav-tabs-rtl mb-4" id="productTab" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="main-tab" data-bs-toggle="tab" data-bs-target="#mainTabPane" type="button" role="tab" aria-controls="mainTabPane" aria-selected="true">
@@ -150,13 +121,13 @@
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">برند</label>
                                             <div class="input-group">
-                                                <select name="brand_id" class="form-select">
+                                                <select name="brand_id" class="form-select" id="brand-select">
                                                     <option value="">بدون برند</option>
                                                     @foreach($brands as $brand)
                                                         <option value="{{ $brand->id }}" @if(old('brand_id')==$brand->id) selected @endif>{{ $brand->name }}</option>
                                                     @endforeach
                                                 </select>
-                                                <a href="{{ route('brands.create') }}" target="_blank" class="btn btn-outline-primary">برند جدید</a>
+                                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#brandModal" id="showBrandModal">برند جدید</button>
                                             </div>
                                         </div>
                                         <div class="col-12 col-md-6">
@@ -292,36 +263,8 @@
         </div>
     </div>
 </div>
-
-<!-- Modal: مدیریت واحد اندازه‌گیری -->
-<div class="modal fade" id="unitModal" tabindex="-1" aria-labelledby="unitModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">مدیریت واحدهای اندازه‌گیری</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
-            </div>
-            <div class="modal-body">
-                <ul class="list-group" id="units-list">
-                    @foreach($units as $unit)
-                        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ $unit->id }}">
-                            <span class="unit-title">{{ $unit->title }}</span>
-                            <div>
-                                <button type="button" class="btn btn-sm btn-primary edit-unit-btn me-1">ویرایش</button>
-                                <button type="button" class="btn btn-sm btn-danger delete-unit-btn">حذف</button>
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
-                <hr>
-                <form id="add-unit-form" class="d-flex gap-2 mt-2">
-                    <input type="text" class="form-control" id="unit-title" placeholder="واحد جدید">
-                    <button type="submit" class="btn btn-success">افزودن واحد</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+@include('products.units-modal')
+@include('products.brand-modal')
 @endsection
 
 @section('scripts')
@@ -333,13 +276,20 @@
     <script src="{{ asset('js/products-create-advanced.js') }}"></script>
     <script>
         $(function() {
+            // تاریخ انقضا فقط اگر کاربر خواست قابل انتخاب باشد (شمسی)
             $('#expire_date_picker').persianDatepicker({
                 format: 'YYYY/MM/DD',
                 autoClose: true,
+                initialValue: false
             });
-            $('#added_at_picker').persianDatepicker({
+            // تاریخ افزودن محصول قابل انتخاب و پیش‌فرض امروز
+            let today = new persianDate().format('YYYY/MM/DD');
+            let $addedAt = $('#added_at_picker');
+            if(!$addedAt.val()) $addedAt.val(today);
+            $addedAt.persianDatepicker({
                 format: 'YYYY/MM/DD',
                 autoClose: true,
+                initialValue: false
             });
         });
     </script>

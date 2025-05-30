@@ -1,58 +1,58 @@
-// تبدیل اعداد لاتین به فارسی
+// --- اعداد فارسی، اعشاری، قیمت خرید/فروش --- //
 function toPersianNumber(str) {
     if (!str) return '';
     return (str + '').replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
 }
-
-// ساخت بارکد EAN-13 استاندارد (۱۲ رقم + رقم کنترلی)
-function generateEan13() {
-    let base = '';
-    for (let i = 0; i < 12; i++) {
-        base += Math.floor(Math.random() * 10);
-    }
-    let sum = 0;
-    for (let i = 0; i < 12; i++) {
-        sum += parseInt(base[i]) * ((i % 2 === 0) ? 1 : 3);
-    }
-    let check = (10 - (sum % 10)) % 10;
-    return base + check;
+function toEnglishNumber(str) {
+    if (!str) return '';
+    return str.replace(/[۰-۹]/g, d => "0123456789"["۰۱۲۳۴۵۶۷۸۹".indexOf(d)]);
+}
+function formatDecimalPersian(numStr) {
+    let en = toEnglishNumber(numStr.replace(/,/g, ''));
+    if(en === "") return "";
+    let parts = en.split('.');
+    let intPart = parts[0].replace(/^0+/, '') || "0";
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    let fracPart = (parts[1] || '').slice(0,2);
+    let result = intPart;
+    if(fracPart.length > 0) result += "." + fracPart;
+    return toPersianNumber(result);
+}
+function unformatDecimalPersian(str) {
+    return toEnglishNumber(str.replace(/,/g, ''));
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Dropzone
-    if (window.Dropzone && !document.getElementById('gallery-dropzone').dropzone) {
-        Dropzone.autoDiscover = false;
-        new Dropzone("#gallery-dropzone", {
-            url: "#",
-            autoProcessQueue: false,
-            addRemoveLinks: true,
-            maxFiles: 5,
-            acceptedFiles: "image/*",
-            dictDefaultMessage: "تصاویر را اینجا بکشید یا کلیک کنید",
+    // قیمت خرید و فروش: همواره اعشاری فارسی
+    document.querySelectorAll('input[name=buy_price], input[name=sell_price]').forEach(inp => {
+        inp.value = formatDecimalPersian(inp.value);
+        inp.addEventListener('input', function(e){
+            let raw = unformatDecimalPersian(this.value);
+            let parts = raw.split('.');
+            raw = parts[0];
+            if(parts.length > 1) raw += '.' + parts[1].slice(0,2);
+            let formatted = formatDecimalPersian(raw);
+            this.value = formatted;
+            this.setSelectionRange(this.value.length, this.value.length);
         });
-    }
+        inp.addEventListener('focus', function(){ this.value = formatDecimalPersian(this.value); });
+        inp.addEventListener('blur', function(){ this.value = formatDecimalPersian(this.value); });
+    });
 
-    // اعداد فارسی و اعشاری روی فیلدهای عددی
+    // سایر فیلدهای عددی
     document.querySelectorAll(".persian-number").forEach(inp => {
+        if(inp.name === "buy_price" || inp.name === "sell_price") return;
         inp.addEventListener('input', function(){
-            let val = this.value.replace(/[^\d.]/g,'');
-            // فقط یک اعشار
+            let val = toEnglishNumber(this.value).replace(/[^0-9.]/g, '');
             let parts = val.split('.');
             if(parts.length > 2) val = parts[0]+'.'+parts.slice(1).join('');
-            this.value = val;
-            this.style.direction = 'ltr';
-            this.style.textAlign = 'left';
-        });
-        inp.addEventListener('blur', function(){
-            if(this.value)
-                this.value = toPersianNumber(this.value);
-            this.style.direction = 'rtl';
-            this.style.textAlign = 'right';
+            this.value = toPersianNumber(val);
         });
         inp.addEventListener('focus', function(){
-            this.value = this.value.replace(/[۰-۹]/g, d => "0123456789"["۰۱۲۳۴۵۶۷۸۹".indexOf(d)]);
-            this.style.direction = 'ltr';
-            this.style.textAlign = 'left';
+            this.value = toPersianNumber(toEnglishNumber(this.value));
+        });
+        inp.addEventListener('blur', function(){
+            this.value = toPersianNumber(toEnglishNumber(this.value));
         });
     });
 
@@ -63,8 +63,8 @@ document.addEventListener('DOMContentLoaded', function () {
         codeSwitch.addEventListener('change', function () {
             codeInput.readOnly = !this.checked;
             if(this.checked){
-                codeInput.focus();
                 codeInput.value = '';
+                codeInput.focus();
             } else {
                 codeInput.value = 'product-1001';
             }
@@ -77,25 +77,32 @@ document.addEventListener('DOMContentLoaded', function () {
         let field = document.getElementById(fieldId);
         if(btn && field) {
             btn.addEventListener('click', function(){
-                field.value = generateEan13();
+                let base = '';
+                for (let i = 0; i < 12; i++) base += Math.floor(Math.random() * 10);
+                let sum = 0;
+                for (let i = 0; i < 12; i++) sum += parseInt(base[i]) * ((i % 2 === 0) ? 1 : 3);
+                let check = (10 - (sum % 10)) % 10;
+                field.value = toPersianNumber(base + check);
                 field.dispatchEvent(new Event('blur'));
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'بارکد استاندارد تولید شد',
-                    showConfirmButton: false,
-                    timer: 1300,
-                    iconColor: '#1abc9c',
-                    background: '#e9fff4',
-                    color: '#173f28',
-                    customClass: { popup: 'swal2-sm' }
-                });
+                Swal.fire({toast:true,position:'top-end',icon:'success',title:'بارکد استاندارد تولید شد',showConfirmButton:false,timer:1300,iconColor:'#1abc9c',background:'#e9fff4',color:'#173f28',customClass:{popup:'swal2-sm'}});
             });
         }
     }
     handleBarcodeBtn('generate-barcode-btn', 'barcode-field');
     handleBarcodeBtn('generate-store-barcode-btn', 'store-barcode-field');
+
+    // Dropzone
+    if (window.Dropzone && !document.getElementById('gallery-dropzone').dropzone) {
+        Dropzone.autoDiscover = false;
+        new Dropzone("#gallery-dropzone", {
+            url: "#",
+            autoProcessQueue: false,
+            addRemoveLinks: true,
+            maxFiles: 5,
+            acceptedFiles: "image/*",
+            dictDefaultMessage: "تصاویر را اینجا بکشید یا کلیک کنید",
+        });
+    }
 
     // ویژگی‌های پویا (attributes)
     const attributesArea = document.getElementById('attributes-area');
@@ -148,24 +155,25 @@ document.addEventListener('DOMContentLoaded', function () {
             warning.style.display = 'none';
         } else if (checked.length === 1) {
             percents.forEach(inp => inp.value = '');
-            document.getElementById('percent-' + checked[0]).value = 100;
+            document.getElementById('percent-' + checked[0]).value = '۱۰۰';
             warning.innerText = '';
             warning.style.display = 'none';
         } else {
             let allEmpty = true;
             checked.forEach(id => {
                 let val = document.getElementById('percent-' + id).value;
-                if (val && parseFloat(val) > 0) allEmpty = false;
+                if (val && parseFloat(toEnglishNumber(val)) > 0) allEmpty = false;
             });
             if (allEmpty) {
-                let share = (100 / checked.length).toFixed(2);
+                let share = 100 / checked.length;
+                share = Math.round(share * 100) / 100;
                 checked.forEach(id => {
-                    document.getElementById('percent-' + id).value = share;
+                    document.getElementById('percent-' + id).value = toPersianNumber(share);
                 });
             }
-            let sum = checked.reduce((acc, id) => acc + parseFloat(document.getElementById('percent-' + id).value || 0), 0);
+            let sum = checked.reduce((acc, id) => acc + parseFloat(toEnglishNumber(document.getElementById('percent-' + id).value || '۰')), 0);
             if (sum !== 100 && !allEmpty) {
-                warning.innerText = 'مجموع درصدها باید ۱۰۰ باشد. مجموع فعلی: ' + sum;
+                warning.innerText = 'مجموع درصدها باید ۱۰۰ باشد. مجموع فعلی: ' + toPersianNumber(sum);
                 warning.style.display = 'block';
             } else {
                 warning.innerText = '';
