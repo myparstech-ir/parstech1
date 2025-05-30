@@ -25,28 +25,29 @@ class ProductController extends Controller
      * نمایش فرم افزودن محصول جدید
      */
     public function create()
-{
-    // گرفتن آخرین کد خودکار محصول
-    $lastAutoCodeProduct = \App\Models\Product::where('code', 'like', 'product-100%')
-        ->orderByDesc(\DB::raw('CAST(SUBSTRING(code, 9) AS UNSIGNED)'))
-        ->first();
+    {
+        // گرفتن آخرین کد خودکار محصول
+        $lastAutoCodeProduct = \App\Models\Product::where('code', 'like', 'product-100%')
+            ->orderByDesc(\DB::raw('CAST(SUBSTRING(code, 9) AS UNSIGNED)'))
+            ->first();
 
-    $default_code = 'product-1001';
-    if ($lastAutoCodeProduct) {
-        // استخراج آخرین شماره
-        $lastNumber = intval(substr($lastAutoCodeProduct->code, 8));
-        $default_code = 'product-' . ($lastNumber + 1);
+        $default_code = 'product-1001';
+        if ($lastAutoCodeProduct) {
+            // استخراج آخرین شماره
+            $lastNumber = intval(substr($lastAutoCodeProduct->code, 8));
+            $default_code = 'product-' . ($lastNumber + 1);
+        }
+
+        $categories = Category::all();
+        $brands = Brand::all();
+        $units = Unit::all();
+        // به جای Shareholder::all() باید Person::where('type', 'shareholder')->get() باشد تا همه سهامداران واقعی بیاید
+        $shareholders = Person::where('type', 'shareholder')->orderBy('full_name')->get();
+
+        return view('products.create', compact(
+            'categories', 'brands', 'units', 'shareholders', 'default_code'
+        ));
     }
-
-    $categories = \App\Models\Category::all();
-    $brands = \App\Models\Brand::all();
-    $units = \App\Models\Unit::all();
-    $shareholders = \App\Models\Shareholder::all();
-
-    return view('products.create', compact(
-        'categories', 'brands', 'units', 'shareholders', 'default_code'
-    ));
-}
 
     /**
      * ذخیره محصول جدید
@@ -139,7 +140,8 @@ class ProductController extends Controller
         $categories = Category::where('category_type', 'product')->get();
         $brands = Brand::all();
         $units = Unit::all();
-        $shareholders = Person::where('type', 'shareholder')->get();
+        // حتماً همین خط را بگذار که همه سهامداران (حتی اگر یکی باشد) بیاید و هیچگاه آرایه خالی نشود
+        $shareholders = Person::where('type', 'shareholder')->orderBy('full_name')->get();
         return view('products.edit', compact('product', 'categories', 'brands', 'units', 'shareholders'));
     }
 

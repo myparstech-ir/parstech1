@@ -42,6 +42,9 @@
         .stock-badge.low { background: #f43f5e22; color: #b91c1c; border: 1px solid #f43f5e77; }
         .stock-badge.warn { background: #fbbf2442; color: #b28900; border: 1px solid #eab30877; }
         .stock-badge.ok { background: #10b98122; color: #065f46; border: 1px solid #10b98177; }
+        .sortable-link { text-decoration: none; color: inherit; }
+        .sortable-link .bi { font-size: 1em; vertical-align: middle; }
+        th { white-space: nowrap; }
     </style>
 @endsection
 
@@ -196,14 +199,27 @@
                 <table class="table table-bordered table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th>#</th>
-                            <th>نام</th>
-                            <th>کد</th>
-                            <th>دسته‌بندی</th>
-                            <th>برند</th>
-                            <th>قیمت فروش</th>
-                            <th>موجودی</th>
-                            <th>هشدار موجودی</th>
+                            @php
+                                function sortable($col, $label, $sort, $direction) {
+                                    $newDir = ($sort == $col && $direction == 'asc') ? 'desc' : 'asc';
+                                    $icon = '';
+                                    if ($sort == $col) {
+                                        $icon = $direction == 'asc' ? 'bi bi-caret-up-fill' : 'bi bi-caret-down-fill';
+                                    }
+                                    $params = array_merge(request()->except('page'), ['sort' => $col, 'direction' => $newDir]);
+                                    $url = url()->current() . '?' . http_build_query($params);
+                                    return '<a href="'.$url.'" class="sortable-link">'.$label.($icon ? ' <i class="'.$icon.'"></i>' : '').'</a>';
+                                }
+                            @endphp
+                            <th>{!! sortable('id', '#', $sort, $direction) !!}</th>
+                            <th>{!! sortable('name', 'نام', $sort, $direction) !!}</th>
+                            <th>{!! sortable('code', 'کد', $sort, $direction) !!}</th>
+                            <th>{!! sortable('category_id', 'دسته‌بندی', $sort, $direction) !!}</th>
+                            <th>{!! sortable('brand_id', 'برند', $sort, $direction) !!}</th>
+                            <th>{!! sortable('sell_price', 'قیمت فروش', $sort, $direction) !!}</th>
+                            <th>{!! sortable('stock', 'موجودی', $sort, $direction) !!}</th>
+                            <th>{!! sortable('stock_alert', 'هشدار موجودی', $sort, $direction) !!}</th>
+                            <th>{!! sortable('min_order_qty', 'حداقل سفارش', $sort, $direction) !!}</th>
                             <th>وضعیت</th>
                             <th>عملیات</th>
                         </tr>
@@ -229,6 +245,7 @@
                                 <td>{{ number_format($product->sell_price) }}</td>
                                 <td>{{ $product->stock }}</td>
                                 <td>{{ $stock_alert }}</td>
+                                <td>{{ $product->min_order_qty }}</td>
                                 <td>
                                     @if($stock_status=='اتمام موجودی')
                                         <span class="badge bg-danger">اتمام موجودی</span>
@@ -250,7 +267,7 @@
                             </tr>
                         @empty
                         <tr>
-                            <td colspan="10" class="text-center text-danger">محصولی یافت نشد.</td>
+                            <td colspan="11" class="text-center text-danger">محصولی یافت نشد.</td>
                         </tr>
                         @endforelse
                     </tbody>

@@ -67,7 +67,6 @@
                         <label class="form-label fw-bold"><i class="bi bi-box"></i> موجودی اولیه</label>
                         <input type="text" name="stock" class="form-control persian-number" value="{{ old('stock', 1) }}">
                     </div>
-                    {{-- هشدار موجودی --}}
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-exclamation-triangle"></i> هشدار موجودی</label>
                         <input type="text" name="stock_alert" class="form-control persian-number" value="{{ old('stock_alert', 1) }}">
@@ -142,11 +141,10 @@
                             <div class="col-12 col-md-6">
                                 <label class="form-label">واحد اندازه‌گیری</label>
                                 <select name="unit" id="selected-unit" class="form-select">
-                                    <option value="عدد" @if(old('unit', 'عدد') == 'عدد') selected @endif>عدد</option>
                                     @foreach($units as $unit)
-                                        @if($unit->title != 'عدد')
-                                            <option value="{{ $unit->title }}" @if(old('unit')==$unit->title) selected @endif>{{ $unit->title }}</option>
-                                        @endif
+                                        <option value="{{ $unit->title }}" @if(old('unit', 'عدد') == $unit->title) selected @endif>
+                                            {{ $unit->title }}@if($unit->id == 0) (پیش فرض) @endif
+                                        </option>
                                     @endforeach
                                 </select>
                                 <button type="button" class="btn btn-outline-info mt-2 w-100" data-bs-toggle="modal" data-bs-target="#unitModal">مدیریت واحدها</button>
@@ -219,7 +217,7 @@
                                         اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی بگذارید به طور مساوی تقسیم می‌شود).
                                     </small>
                                 </div>
-                                @if(isset($shareholders) && count($shareholders))
+                                @if($shareholders->count())
                                     <div class="row" id="shareholder-list">
                                         @foreach($shareholders as $shareholder)
                                             <div class="col-12 mb-2">
@@ -310,6 +308,15 @@
                 codeInput.readOnly = true;
                 codeInput.value = codeDefault;
             }
+            // فعال/غیرفعال کردن input درصد سهامدار
+            $('.shareholder-checkbox').on('change', function(){
+                let input = $('#percent-' + $(this).val());
+                if($(this).is(':checked')){
+                    input.prop('disabled', false);
+                }else{
+                    input.prop('disabled', true).val('');
+                }
+            });
         });
     </script>
 @endsection
