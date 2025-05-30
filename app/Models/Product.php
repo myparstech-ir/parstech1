@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    protected $guarded = [];
     use HasFactory;
+
+    protected $guarded = [];
 
     // مقدار پیش فرض هشدار موجودی
     public const STOCK_ALERT_DEFAULT = 1;
@@ -38,13 +39,11 @@ class Product extends Model
         'description',
     ];
 
-    // ارتباط با دسته‌بندی
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
 
-    // ارتباط با برند
     public function brand()
     {
         return $this->belongsTo(Brand::class);
@@ -55,16 +54,11 @@ class Product extends Model
     {
         return $value ? json_decode($value, true) : [];
     }
+
+    // ارتباط محصولات و سهامداران از طریق جدول واسط product_shareholder
     public function shareholders()
     {
-        // اگر در جدول product_shareholder ستون person_id داری:
         return $this->belongsToMany(Person::class, 'product_shareholder', 'product_id', 'person_id')
             ->withPivot('percent');
-
-        // اگر مدل Shareholder داری و فیلدش shareholder_id است:
-        // return $this->belongsToMany(Shareholder::class, 'product_shareholder', 'product_id', 'shareholder_id')
-        //     ->withPivot('percent');
     }
-
-    // اگر نیاز به متدهای بیشتری بود اینجا اضافه کن
 }

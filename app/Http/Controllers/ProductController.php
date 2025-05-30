@@ -12,28 +12,82 @@ use App\Models\Person;
 
 class ProductController extends Controller
 {
-    /**
-     * نمایش لیست محصولات
-     */
-    public function index()
+    // تابع کمکی برای تبدیل اعداد فارسی به انگلیسی
+    private function faToEnNumber($input)
     {
-        $products = Product::with(['category', 'brand'])->orderBy('id', 'desc')->paginate(20);
-        return view('products.index', compact('products'));
+        if (is_array($input)) {
+            foreach ($input as $key => $val) {
+                $input[$key] = $this->faToEnNumber($val);
+            }
+            return $input;
+        }
+        $faNums = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹','٫'];
+        $enNums = ['0','1','2','3','4','5','6','7','8','9','.'];
+        return str_replace($faNums, $enNums, $input);
     }
 
-    /**
-     * نمایش فرم افزودن محصول جدید
-     */
+    private function normalizeNumbers(&$data, $fields)
+    {
+        foreach ($fields as $field) {
+            if (isset($data[$field]) && !is_null($data[$field])) {
+                $data[$field] = $this->faToEnNumber($data[$field]);
+            }
+        }
+    }
+
+    public function index(Request $request)
+    {
+        $query = Product::with(['category', 'brand']);
+
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+        if ($request->filled('code')) {
+            $query->where('code', 'like', '%' . $request->code . '%');
+        }
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        if ($request->filled('brand_id')) {
+            $query->where('brand_id', $request->brand_id);
+        }
+        if ($request->filled('inventory')) {
+            if ($request->inventory == 'low') {
+                $query->where('stock', '<=', Product::STOCK_ALERT_DEFAULT);
+            } elseif ($request->inventory == 'zero') {
+                $query->where('stock', '<=', 0);
+            } elseif ($request->inventory == 'ok') {
+                $query->where('stock', '>', Product::STOCK_ALERT_DEFAULT);
+            }
+        }
+
+        $sort = $request->get('sort', 'id');
+        $direction = $request->get('direction', 'desc');
+        $query->orderBy($sort, $direction);
+
+        $products = $query->paginate(20);
+
+        $lowStockProducts = Product::where('stock', '<=', Product::STOCK_ALERT_DEFAULT)
+            ->with(['category', 'brand'])->get();
+
+        $categories = Category::all();
+        $brands = Brand::all();
+        $categories_count = $categories->count();
+        $brands_count = $brands->count();
+
+        return view('products.index', compact(
+            'products', 'categories', 'brands', 'categories_count', 'brands_count', 'sort', 'direction', 'lowStockProducts'
+        ));
+    }
+
     public function create()
     {
-        // گرفتن آخرین کد خودکار محصول
-        $lastAutoCodeProduct = \App\Models\Product::where('code', 'like', 'product-100%')
+        $lastAutoCodeProduct = Product::where('code', 'like', 'product-100%')
             ->orderByDesc(\DB::raw('CAST(SUBSTRING(code, 9) AS UNSIGNED)'))
             ->first();
 
         $default_code = 'product-1001';
         if ($lastAutoCodeProduct) {
-            // استخراج آخرین شماره
             $lastNumber = intval(substr($lastAutoCodeProduct->code, 8));
             $default_code = 'product-' . ($lastNumber + 1);
         }
@@ -41,7 +95,6 @@ class ProductController extends Controller
         $categories = Category::all();
         $brands = Brand::all();
         $units = Unit::all();
-        // به جای Shareholder::all() باید Person::where('type', 'shareholder')->get() باشد تا همه سهامداران واقعی بیاید
         $shareholders = Person::where('type', 'shareholder')->orderBy('full_name')->get();
 
         return view('products.create', compact(
@@ -49,11 +102,20 @@ class ProductController extends Controller
         ));
     }
 
-    /**
-     * ذخیره محصول جدید
-     */
     public function store(Request $request)
     {
+        // تبدیل اعداد فارسی به انگلیسی قبل از ولیدیشن
+        $fieldsToConvert = [
+            'stock', 'stock_alert', 'min_order_qty', 'weight', 'buy_price', 'sell_price', 'discount'
+        ];
+        $input = $request->all();
+        $this->normalizeNumbers($input, $fieldsToConvert);
+        // همچنین درصد سهامداران را نیز اصلاح کن اگر ارسالی باشد:
+        if (isset($input['shareholder_percents'])) {
+            $input['shareholder_percents'] = $this->faToEnNumber($input['shareholder_percents']);
+        }
+        $request->replace($input);
+
         $request->validate([
             'name'        => 'required|string|max:255',
             'code'        => 'required|string|max:255|unique:products,code',
@@ -61,11 +123,15 @@ class ProductController extends Controller
             'brand_id'    => 'nullable|exists:brands,id',
             'unit'        => 'nullable|string|max:255',
             'stock'       => 'nullable|numeric',
-            'min_stock'   => 'nullable|numeric',
+            'stock_alert' => 'nullable|numeric',
+            'min_order_qty' => 'nullable|numeric',
             'weight'      => 'nullable|numeric',
             'buy_price'   => 'nullable|numeric',
             'sell_price'  => 'nullable|numeric',
             'discount'    => 'nullable|numeric',
+            'expire_date' => 'nullable|string',
+            'added_at'    => 'nullable|string',
+            'is_active'   => 'nullable|boolean',
             'barcode'     => 'nullable|string|max:255',
             'store_barcode' => 'nullable|string|max:255',
             'short_desc'  => 'nullable|string',
@@ -75,8 +141,8 @@ class ProductController extends Controller
         ]);
 
         $data = $request->only([
-            'name', 'code', 'category_id', 'brand_id', 'unit', 'stock', 'min_stock', 'weight', 'buy_price',
-            'sell_price', 'discount', 'barcode', 'store_barcode', 'short_desc', 'description'
+            'name', 'code', 'category_id', 'brand_id', 'unit', 'stock', 'stock_alert', 'min_order_qty', 'weight', 'buy_price',
+            'sell_price', 'discount', 'expire_date', 'added_at', 'is_active', 'barcode', 'store_barcode', 'short_desc', 'description'
         ]);
 
         if ($request->hasFile('image')) {
@@ -85,28 +151,40 @@ class ProductController extends Controller
         if ($request->hasFile('video')) {
             $data['video'] = $request->file('video')->store('products/videos', 'public');
         }
-        if (!isset($data['stock'])) $data['stock'] = 0;
-        if (!isset($data['min_stock'])) $data['min_stock'] = 0;
+
+        $gallery = $request->file('gallery', []);
+        if ($gallery && is_array($gallery)) {
+            $gallery_paths = [];
+            foreach ($gallery as $img) {
+                if ($img) {
+                    $gallery_paths[] = $img->store('products/gallery', 'public');
+                }
+            }
+            if (count($gallery_paths)) {
+                $data['gallery'] = json_encode($gallery_paths, JSON_UNESCAPED_UNICODE);
+            }
+        }
+
+        $data['stock'] = $data['stock'] ?? 1;
+        $data['stock_alert'] = $data['stock_alert'] ?? Product::STOCK_ALERT_DEFAULT;
+        $data['min_order_qty'] = $data['min_order_qty'] ?? 1;
+        $data['is_active'] = $request->has('is_active') ? 1 : 0;
 
         $product = Product::create($data);
 
-        // ----- ذخیره سهم سهامداران -----
         if ($request->has('shareholder_ids')) {
             $syncData = [];
             $percents = $request->input('shareholder_percents', []);
             $ids = $request->input('shareholder_ids', []);
             $totalPercent = 0;
             foreach ($ids as $id) {
-                $percent = isset($percents[$id]) ? floatval($percents[$id]) : 0;
+                $percent = isset($percents[$id]) ? floatval($this->faToEnNumber($percents[$id])) : 0;
                 $syncData[$id] = ['percent' => $percent];
                 $totalPercent += $percent;
             }
-            // اگر مجموع درصد کمتر از 100 بود و فقط یک نفر انتخاب شده، کل درصد را به او بده
             if (count($ids) === 1) {
                 $syncData[$ids[0]] = ['percent' => 100];
-            }
-            // اگر مجموع درصد کمتر از 100 و چند نفر انتخاب شده بودند، بین‌شان تقسیم کن
-            elseif (count($ids) > 1 && $totalPercent < 100) {
+            } elseif (count($ids) > 1 && $totalPercent < 100) {
                 $remained = 100 - $totalPercent;
                 $extra = $remained / count($ids);
                 foreach ($ids as $id) {
@@ -115,7 +193,6 @@ class ProductController extends Controller
             }
             $product->shareholders()->sync($syncData);
         } else {
-            // اگر هیچ سهامداری انتخاب نشد، بین همه سهامداران تقسیم کن
             $allShareholders = Person::where('type', 'shareholder')->get();
             $count = $allShareholders->count();
             if ($count > 0) {
@@ -131,25 +208,29 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'محصول با موفقیت ثبت شد.');
     }
 
-    /**
-     * نمایش فرم ویرایش محصول
-     */
     public function edit($id)
     {
         $product = Product::findOrFail($id);
         $categories = Category::where('category_type', 'product')->get();
         $brands = Brand::all();
         $units = Unit::all();
-        // حتماً همین خط را بگذار که همه سهامداران (حتی اگر یکی باشد) بیاید و هیچگاه آرایه خالی نشود
         $shareholders = Person::where('type', 'shareholder')->orderBy('full_name')->get();
         return view('products.edit', compact('product', 'categories', 'brands', 'units', 'shareholders'));
     }
 
-    /**
-     * بروزرسانی محصول
-     */
     public function update(Request $request, $id)
     {
+        // تبدیل اعداد فارسی به انگلیسی قبل از ولیدیشن
+        $fieldsToConvert = [
+            'stock', 'stock_alert', 'min_order_qty', 'weight', 'buy_price', 'sell_price', 'discount'
+        ];
+        $input = $request->all();
+        $this->normalizeNumbers($input, $fieldsToConvert);
+        if (isset($input['shareholder_percents'])) {
+            $input['shareholder_percents'] = $this->faToEnNumber($input['shareholder_percents']);
+        }
+        $request->replace($input);
+
         $product = Product::findOrFail($id);
 
         $request->validate([
@@ -159,11 +240,15 @@ class ProductController extends Controller
             'brand_id'    => 'nullable|exists:brands,id',
             'unit'        => 'nullable|string|max:255',
             'stock'       => 'nullable|numeric',
-            'min_stock'   => 'nullable|numeric',
+            'stock_alert' => 'nullable|numeric',
+            'min_order_qty' => 'nullable|numeric',
             'weight'      => 'nullable|numeric',
             'buy_price'   => 'nullable|numeric',
             'sell_price'  => 'nullable|numeric',
             'discount'    => 'nullable|numeric',
+            'expire_date' => 'nullable|string',
+            'added_at'    => 'nullable|string',
+            'is_active'   => 'nullable|boolean',
             'barcode'     => 'nullable|string|max:255',
             'store_barcode' => 'nullable|string|max:255',
             'short_desc'  => 'nullable|string',
@@ -173,8 +258,8 @@ class ProductController extends Controller
         ]);
 
         $data = $request->only([
-            'name', 'code', 'category_id', 'brand_id', 'unit', 'stock', 'min_stock', 'weight', 'buy_price',
-            'sell_price', 'discount', 'barcode', 'store_barcode', 'short_desc', 'description'
+            'name', 'code', 'category_id', 'brand_id', 'unit', 'stock', 'stock_alert', 'min_order_qty', 'weight', 'buy_price',
+            'sell_price', 'discount', 'expire_date', 'added_at', 'is_active', 'barcode', 'store_barcode', 'short_desc', 'description'
         ]);
 
         if ($request->hasFile('image')) {
@@ -184,23 +269,36 @@ class ProductController extends Controller
             $data['video'] = $request->file('video')->store('products/videos', 'public');
         }
 
+        $gallery = $request->file('gallery', []);
+        if ($gallery && is_array($gallery)) {
+            $gallery_paths = [];
+            foreach ($gallery as $img) {
+                if ($img) {
+                    $gallery_paths[] = $img->store('products/gallery', 'public');
+                }
+            }
+            if (count($gallery_paths)) {
+                $data['gallery'] = json_encode($gallery_paths, JSON_UNESCAPED_UNICODE);
+            }
+        }
+
+        $data['is_active'] = $request->has('is_active') ? 1 : 0;
+
         $product->update($data);
 
-        // ----- بروزرسانی سهم سهامداران -----
         if ($request->has('shareholder_ids')) {
             $syncData = [];
             $percents = $request->input('shareholder_percents', []);
             $ids = $request->input('shareholder_ids', []);
             $totalPercent = 0;
             foreach ($ids as $id) {
-                $percent = isset($percents[$id]) ? floatval($percents[$id]) : 0;
+                $percent = isset($percents[$id]) ? floatval($this->faToEnNumber($percents[$id])) : 0;
                 $syncData[$id] = ['percent' => $percent];
                 $totalPercent += $percent;
             }
             if (count($ids) === 1) {
                 $syncData[$ids[0]] = ['percent' => 100];
-            }
-            elseif (count($ids) > 1 && $totalPercent < 100) {
+            } elseif (count($ids) > 1 && $totalPercent < 100) {
                 $remained = 100 - $totalPercent;
                 $extra = $remained / count($ids);
                 foreach ($ids as $id) {
@@ -209,7 +307,6 @@ class ProductController extends Controller
             }
             $product->shareholders()->sync($syncData);
         } else {
-            // اگر هیچ سهامداری انتخاب نشد، بین همه سهامداران تقسیم کن
             $allShareholders = Person::where('type', 'shareholder')->get();
             $count = $allShareholders->count();
             if ($count > 0) {
@@ -225,86 +322,10 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'محصول با موفقیت ویرایش شد.');
     }
 
-    /**
-     * حذف محصول
-     */
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
         $product->delete();
         return redirect()->route('products.index')->with('success', 'محصول با موفقیت حذف شد.');
-    }
-
-    /**
-     * Ajax list for products with category filter and search.
-     */
-    public function ajaxList(Request $request)
-    {
-        $query = Product::with('category')
-            ->whereHas('category', function($q) {
-                $q->where('category_type', 'product');
-            });
-
-        if ($request->filled('q')) {
-            $search = $request->input('q');
-            $query->where(function($q) use ($search){
-                $q->where('name', 'like', "%$search%")
-                  ->orWhere('code', 'like', "%$search%");
-            });
-        }
-
-        $products = $query->limit($request->input('limit', 10))->get();
-
-        $data = $products->map(function($item){
-            return [
-                'id' => $item->id,
-                'code' => $item->code,
-                'name' => $item->name,
-                'image' => $item->image,
-                'stock' => $item->stock,
-                'sell_price' => $item->sell_price,
-                'category' => $item->category->name ?? '-',
-                'category_type' => $item->category->category_type ?? '-',
-            ];
-        });
-        return response()->json($data);
-    }
-
-    /**
-     * دریافت اطلاعات یک محصول (برای افزودن به سبد خرید)
-     */
-    public function itemInfo(Request $request)
-    {
-        $id = $request->input('id');
-        $type = $request->input('type');
-
-        if ($type === 'product') {
-            $product = Product::with('category')->findOrFail($id);
-            return response()->json([
-                'id' => $product->id,
-                'code' => $product->code,
-                'name' => $product->name,
-                'image' => $product->image,
-                'stock' => $product->stock,
-                'sell_price' => $product->sell_price,
-                'category' => $product->category->name ?? '-',
-                'unit' => $product->unit ?? '-',
-            ]);
-        } elseif ($type === 'service') {
-            $service = Service::with('category')->findOrFail($id);
-            return response()->json([
-                'id' => $service->id,
-                'code' => $service->service_code,
-                'name' => $service->title,
-                'image' => null,
-                'stock' => 1, // خدمات همیشه 1 - فقط جهت سازگاری
-                'sell_price' => $service->price,
-                'category' => $service->category ? $service->category->name : '-',
-                'unit' => $service->unit ?? '-',
-                'description' => $service->short_description ?? $service->description,
-            ]);
-        }
-
-        return response()->json(['error' => 'Invalid type'], 400);
     }
 }

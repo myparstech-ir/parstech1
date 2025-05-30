@@ -10,6 +10,9 @@
             background: #fff1f2 !important;
             border-left: 5px solid #f43f5e !important;
         }
+        .carousel .card-product { min-width: 320px; max-width: 340px; margin: auto; }
+        .carousel-item { justify-content: center; display: flex; }
+        .carousel-control-prev, .carousel-control-next { width: 5%; }
         .product-inventory-warning {
             background: #fffbe7 !important;
             border-left: 5px solid #fbbf24 !important;
@@ -50,6 +53,68 @@
 
 @section('content')
 <div class="container-fluid mt-3">
+
+    {{-- کارت های کاروسل محصولات کم‌موجودی --}}
+    @if($lowStockProducts->count())
+    <div id="lowStockCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            @foreach($lowStockProducts as $i => $product)
+                <div class="carousel-item @if($i==0) active @endif">
+                    <div class="card card-product shadow-sm product-inventory-low">
+                        <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">{{ $product->name }}</h5>
+                                <div class="mb-2 text-muted fs-7">
+                                    <span class="me-2"><i class="bi bi-upc-scan"></i> {{ $product->code }}</span>
+                                    <span class="me-2"><i class="bi bi-list-task"></i> {{ $product->category?->name ?? '-' }}</span>
+                                    <span class="me-2"><i class="bi bi-building"></i> {{ $product->brand?->name ?? '-' }}</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info me-2">
+                                        قیمت: {{ number_format($product->sell_price) }} تومان
+                                    </span>
+                                    <span class="badge stock-badge low">
+                                        <i class="bi bi-archive"></i>
+                                        @if($product->stock <= 0)
+                                            اتمام موجودی
+                                        @else
+                                            موجودی کم ({{ $product->stock }})
+                                        @endif
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0 ms-md-3">
+                                <a href="{{ route('products.show', $product->id) }}" class="btn btn-outline-info btn-sm"><i class="bi bi-eye"></i></a>
+                                <a href="{{ route('products.edit', $product->id) }}" class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil"></i></a>
+                                <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display: inline-block;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-outline-danger btn-sm" onclick="return confirm('آیا مطمئن هستید؟')"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 d-flex flex-wrap gap-2 justify-content-between">
+                            <small class="text-muted">ثبت: {{ jdate($product->created_at)->format('Y/m/d') }}</small>
+                            @if(isset($product->expire_date))
+                                <small class="text-danger">انقضا: {{ $product->expire_date }}</small>
+                            @endif
+                            <small>واحد: {{ $product->unit ?? '-' }}</small>
+                            <small>کمترین سفارش: {{ $product->min_order_qty ?? '-' }}</small>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#lowStockCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+            <span class="visually-hidden">قبلی</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#lowStockCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+            <span class="visually-hidden">بعدی</span>
+        </button>
+    </div>
+    @endif
 
     {{-- کارت‌های آماری بالا --}}
     <div class="row mb-4 stats-cards">
@@ -125,71 +190,7 @@
         </div>
     </form>
 
-    {{-- لیست محصولات به صورت کارت و جدول --}}
-    <div class="row g-3 mb-4">
-        @forelse($products as $product)
-            @php
-                $stock_alert = $product->stock_alert ?? ($product::STOCK_ALERT_DEFAULT ?? 1);
-                $stock_status = $product->stock <= 0
-                    ? 'low'
-                    : ($product->stock <= $stock_alert ? 'warn' : 'ok');
-            @endphp
-            <div class="col-12 col-lg-6 col-xxl-4">
-                <div class="card card-product shadow-sm
-                    @if($stock_status=='low') product-inventory-low
-                    @elseif($stock_status=='warn') product-inventory-warning
-                    @else product-inventory-ok @endif
-                ">
-                    <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between">
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">{{ $product->name }}</h5>
-                            <div class="mb-2 text-muted fs-7">
-                                <span class="me-2"><i class="bi bi-upc-scan"></i> {{ $product->code }}</span>
-                                <span class="me-2"><i class="bi bi-list-task"></i> {{ $product->category?->name ?? '-' }}</span>
-                                <span class="me-2"><i class="bi bi-building"></i> {{ $product->brand?->name ?? '-' }}</span>
-                            </div>
-                            <div>
-                                <span class="badge bg-info me-2">قیمت: {{ number_format($product->sell_price) }} تومان</span>
-                                <span class="badge stock-badge {{ $stock_status }}">
-                                    <i class="bi bi-archive"></i>
-                                    @if($stock_status=='low')
-                                        اتمام موجودی
-                                    @elseif($stock_status=='warn')
-                                        موجودی کم ({{ $product->stock }})
-                                    @else
-                                        موجودی: {{ $product->stock }}
-                                    @endif
-                                </span>
-                            </div>
-                        </div>
-                        <div class="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0 ms-md-3">
-                            <a href="{{ route('products.show', $product->id) }}" class="btn btn-outline-info btn-sm"><i class="bi bi-eye"></i></a>
-                            <a href="{{ route('products.edit', $product->id) }}" class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil"></i></a>
-                            <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display: inline-block;">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-outline-danger btn-sm" onclick="return confirm('آیا مطمئن هستید؟')"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent border-0 d-flex flex-wrap gap-2 justify-content-between">
-                        <small class="text-muted">ثبت: {{ jdate($product->created_at)->format('Y/m/d') }}</small>
-                        @if(isset($product->expire_date))
-                            <small class="text-danger">انقضا: {{ $product->expire_date }}</small>
-                        @endif
-                        <small>واحد: {{ $product->unit ?? '-' }}</small>
-                        <small>کمترین سفارش: {{ $product->min_order_qty ?? '-' }}</small>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div class="col-12">
-                <div class="alert alert-danger text-center">محصولی یافت نشد.</div>
-            </div>
-        @endforelse
-    </div>
-
-    {{-- جدول ساده (برای دسترسی سریع) --}}
+    {{-- لیست محصولات به صورت جدول --}}
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-light">
             <b>جدول محصولات</b>
@@ -199,27 +200,15 @@
                 <table class="table table-bordered table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            @php
-                                function sortable($col, $label, $sort, $direction) {
-                                    $newDir = ($sort == $col && $direction == 'asc') ? 'desc' : 'asc';
-                                    $icon = '';
-                                    if ($sort == $col) {
-                                        $icon = $direction == 'asc' ? 'bi bi-caret-up-fill' : 'bi bi-caret-down-fill';
-                                    }
-                                    $params = array_merge(request()->except('page'), ['sort' => $col, 'direction' => $newDir]);
-                                    $url = url()->current() . '?' . http_build_query($params);
-                                    return '<a href="'.$url.'" class="sortable-link">'.$label.($icon ? ' <i class="'.$icon.'"></i>' : '').'</a>';
-                                }
-                            @endphp
-                            <th>{!! sortable('id', '#', $sort, $direction) !!}</th>
-                            <th>{!! sortable('name', 'نام', $sort, $direction) !!}</th>
-                            <th>{!! sortable('code', 'کد', $sort, $direction) !!}</th>
-                            <th>{!! sortable('category_id', 'دسته‌بندی', $sort, $direction) !!}</th>
-                            <th>{!! sortable('brand_id', 'برند', $sort, $direction) !!}</th>
-                            <th>{!! sortable('sell_price', 'قیمت فروش', $sort, $direction) !!}</th>
-                            <th>{!! sortable('stock', 'موجودی', $sort, $direction) !!}</th>
-                            <th>{!! sortable('stock_alert', 'هشدار موجودی', $sort, $direction) !!}</th>
-                            <th>{!! sortable('min_order_qty', 'حداقل سفارش', $sort, $direction) !!}</th>
+                            <th>#</th>
+                            <th>نام</th>
+                            <th>کد</th>
+                            <th>دسته‌بندی</th>
+                            <th>برند</th>
+                            <th>قیمت فروش</th>
+                            <th>موجودی</th>
+                            <th>هشدار موجودی</th>
+                            <th>حداقل سفارش</th>
                             <th>وضعیت</th>
                             <th>عملیات</th>
                         </tr>
