@@ -2,221 +2,276 @@
 
 @section('title', 'افزودن خدمت جدید')
 
-@section('styles')
+@section('head')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ asset('css/service-create.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        .switch-edit-code {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .input-group .input-group-text {
-            min-width: 110px;
-            justify-content: center;
-        }
-        .modal-backdrop.show {
-            opacity: 0.2;
-        }
-        .list-group-item .unit-name {
-            min-width: 100px;
-            display: inline-block;
+        .tab-pane label { font-weight: 500; }
+        .required:after { content: '*'; color: #d90429; font-weight: bold; margin-right: 2px;}
+        .list-group .input-group { flex-wrap: nowrap; }
+        .remove-btn { min-width: 35px; }
+        .btn-add-new { min-width: 120px; }
+        .img-preview { max-width: 120px; border-radius: 8px; margin-top: 10px; }
+        .nav-tabs .nav-link.active { background: #0d6efd; color: #fff !important;}
+        .nav-tabs .nav-link { color: #0d6efd; }
+        .print-area { background: #f8fafc; border-radius: 10px; border: 1px dashed #0d6efd; padding: 20px; margin-bottom: 15px; }
+        .print-btn { float: left; }
+        @media print {
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area { position: absolute; left: 0; top: 0; width: 100vw; background: #fff !important; box-shadow: none !important; }
+            .print-btn { display: none !important; }
         }
     </style>
 @endsection
 
 @section('content')
-
-<section class="container pt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div id="service-header" class="card-header bg-info text-white">
-                    <h4 class="mb-0">
-                        <i class="fa fa-plus-circle me-2"></i>افزودن خدمت جدید
-                    </h4>
+<div class="container py-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-info text-white">
+            <h1 class="mb-0"><i class="bi bi-plus-circle-dotted me-2"></i>افزودن خدمت جدید</h1>
+        </div>
+        <div class="card-body">
+            @if ($errors->any())
+                <div class="alert alert-danger mb-4">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
-                <div class="card-body">
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                    @if(session('success'))
-                        <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
+            @endif
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
 
-                    <form action="{{ route('services.store') }}" method="POST" enctype="multipart/form-data" autocomplete="off">
-                        @csrf
+            <form id="service-form" action="{{ route('services.store') }}" method="POST" enctype="multipart/form-data" autocomplete="off">
+                @csrf
 
-                        <div class="mb-3">
-                            <label for="title" class="form-label required">نام خدمت</label>
-                            <input type="text" name="title" id="title" class="form-control" required autofocus value="{{ old('title') }}">
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="service_code" class="form-label">کد خدمات</label>
-                            <div class="input-group">
-                                <input
-                                    type="text"
-                                    id="service_code"
-                                    name="service_code"
-                                    class="form-control"
-                                    required
-                                    value="{{ old('service_code') }}"
-                                >
-                                <span class="input-group-text">
-                                    <label class="switch-edit-code mb-0">
-                                        <input type="checkbox" id="custom_code_switch" class="form-check-input ms-1">
-                                        کد دلخواه
-                                    </label>
-                                </span>
+                <ul class="nav nav-tabs nav-tabs-rtl mb-4" id="serviceTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="main-tab" data-bs-toggle="tab" data-bs-target="#mainTabPane" type="button" role="tab" aria-controls="mainTabPane" aria-selected="true">
+                            <i class="bi bi-info-circle"></i> اطلاعات پایه
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="media-tab" data-bs-toggle="tab" data-bs-target="#mediaTabPane" type="button" role="tab" aria-controls="mediaTabPane" aria-selected="false">
+                            <i class="bi bi-images"></i> رسانه
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="desc-tab" data-bs-toggle="tab" data-bs-target="#descTabPane" type="button" role="tab" aria-controls="descTabPane" aria-selected="false">
+                            <i class="bi bi-file-earmark-text"></i> توضیحات و ویژگی‌ها
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="shareholder-tab" data-bs-toggle="tab" data-bs-target="#shareholderTabPane" type="button" role="tab" aria-controls="shareholderTabPane" aria-selected="false">
+                            <i class="bi bi-people"></i> سهامداران
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="allitems-tab" data-bs-toggle="tab" data-bs-target="#allitemsTabPane" type="button" role="tab" aria-controls="allitemsTabPane" aria-selected="false">
+                            <i class="bi bi-list-check"></i> لیست پرینتی اقلام و موارد خدمت
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="serviceTabContent">
+                    {{-- اطلاعات پایه --}}
+                    <div class="tab-pane fade show active" id="mainTabPane" role="tabpanel" aria-labelledby="main-tab">
+                        <div class="row g-3 mb-1">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label required">عنوان خدمت</label>
+                                <input type="text" name="title" class="form-control" required autofocus value="{{ old('title') }}">
                             </div>
-                            <small class="text-muted d-block mt-1">
-                                در حالت پیش‌فرض کد به صورت خودکار ساخته می‌شود. برای وارد کردن کد دلخواه تیک را فعال کنید.
-                            </small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="image" class="form-label">تصویر خدمت</label>
-                            <input type="file" name="image" id="image" class="form-control" accept="image/*">
-                            <img id="image_preview" src="#" alt="پیش نمایش" style="display:none; max-width:150px; margin-top:10px;">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="service_info" class="form-label">اطلاعات خدمات</label>
-                            <input type="text" name="service_info" id="service_info" class="form-control" value="{{ old('service_info') }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="service_category_id" class="form-label">دسته‌بندی خدمت</label>
-                            <select name="service_category_id" id="service_category_id" class="form-select">
-                                <option value="">انتخاب کنید</option>
-                                @foreach($serviceCategories ?? [] as $cat)
-                                    <option value="{{ $cat->id }}" {{ old('service_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="price" class="form-label required">مبلغ فروش (تومان)</label>
-                            <input type="number" name="price" id="price" class="form-control" min="0" step="100" required value="{{ old('price') }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="unit_id" class="form-label required">واحد خدمت</label>
-                            <div class="input-group">
-                                <select name="unit_id" id="unit_id" class="form-select" required>
-                                    <option value="">انتخاب واحد</option>
-                                    @foreach($units as $unit)
-                                        <option value="{{ $unit->id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>{{ $unit->title }}</option>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label required">کد خدمت</label>
+                                <div class="input-group">
+                                    <input type="text" name="service_code" id="service_code" class="form-control" required value="{{ old('service_code', $nextCode ?? '') }}">
+                                    <button type="button" class="btn btn-outline-secondary" id="custom_code_switch">کد دلخواه</button>
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    اگر می‌خواهید کد خاصی وارد کنید دکمه بالا را بزنید (در غیر این صورت کد خودکار تولید می‌شود)
+                                </small>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">دسته‌بندی خدمت</label>
+                                <select name="service_category_id" class="form-select">
+                                    <option value="">انتخاب کنید</option>
+                                    @foreach($serviceCategories ?? [] as $cat)
+                                        <option value="{{ $cat->id }}" {{ old('service_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                                     @endforeach
                                 </select>
-                                <button type="button" class="btn btn-outline-primary" id="add-unit-btn">
-                                    افزودن واحد جدید
-                                </button>
                             </div>
-                        </div>
-                        <ul id="unit-list" class="list-group mb-3" style="display: none"></ul>
-
-                        <div class="mb-3">
-                            <label for="short_description" class="form-label">توضیح کوتاه</label>
-                            <input type="text" name="short_description" id="short_description" class="form-control" maxlength="255" value="{{ old('short_description') }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="description" class="form-label">توضیحات</label>
-                            <textarea name="description" id="description" class="form-control" rows="2">{{ old('description') }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="info_link" class="form-label">صفحه/لینک اطلاعات گرفته شده</label>
-                            <textarea name="info_link" id="info_link" class="form-control" rows="2">{{ old('info_link') }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="full_description" class="form-label">توضیحات کامل</label>
-                            <textarea name="full_description" id="full_description" class="form-control" rows="5">{{ old('full_description') }}</textarea>
-                        </div>
-
-                        <div class="mb-3 form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_active">
-                                فعال باشد
-                            </label>
-                        </div>
-
-                        {{-- بخش سهامداران --}}
-                        <div class="mb-4">
-                            <label class="form-label"><b>سهامداران و درصد سهم هرکدام</b></label>
-                            <div class="row">
-                                @foreach($shareholders as $shareholder)
-                                <div class="col-md-4 mb-2">
-                                    <div class="input-group">
-                                        <div class="input-group-text" style="min-width:120px">{{ $shareholder->full_name }}</div>
-                                        <input type="number"
-                                               class="form-control"
-                                               name="shareholders[{{ $shareholder->id }}]"
-                                               min="0"
-                                               max="100"
-                                               step="0.01"
-                                               value="{{ old('shareholders.'.$shareholder->id, '') }}"
-                                               placeholder="درصد سهم">
-                                        <span class="input-group-text">%</span>
-                                    </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label required">مبلغ خدمت (تومان)</label>
+                                <input type="number" name="price" class="form-control" min="0" step="100" required value="{{ old('price') }}">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label required">واحد محاسبه خدمت</label>
+                                <div class="input-group">
+                                    <select name="unit_id" class="form-select" required>
+                                        <option value="">انتخاب واحد</option>
+                                        @foreach($units as $unit)
+                                            <option value="{{ $unit->id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>{{ $unit->title }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" id="add-unit-btn">افزودن واحد جدید</button>
                                 </div>
-                                @endforeach
                             </div>
-                            <small class="text-muted">درصد سهام هرکدام را وارد کنید. اگر سهامداری در این خدمت سهم ندارد، مقدار را خالی بگذارید یا صفر وارد کنید.</small>
+                            <div class="col-12 col-md-6">
+                                <div class="form-check form-switch pt-4">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label ms-2" for="is_active">فعال باشد</label>
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-success px-4">
-                                <i class="fa fa-save me-1"></i>ثبت خدمت
-                            </button>
+                        <div class="row g-3 mt-2">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">اطلاعات خدمات (اختیاری)</label>
+                                <input type="text" name="service_info" class="form-control" value="{{ old('service_info') }}">
+                            </div>
                         </div>
-                    </form>
+                    </div>
+                    {{-- رسانه --}}
+                    <div class="tab-pane fade" id="mediaTabPane" role="tabpanel" aria-labelledby="media-tab">
+                        <div class="row gy-3 mb-2">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">تصویر شاخص خدمت</label>
+                                <input type="file" name="image" id="image" class="form-control" accept="image/*">
+                                <img id="image_preview" src="#" alt="پیش نمایش" style="display:none;" class="img-preview">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">گالری تصاویر</label>
+                                <input type="file" name="gallery[]" class="form-control" accept="image/*" multiple>
+                                <small class="text-muted">حداکثر ۵ تصویر، هر تصویر کمتر از ۲ مگابایت</small>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- توضیحات و ویژگی‌ها --}}
+                    <div class="tab-pane fade" id="descTabPane" role="tabpanel" aria-labelledby="desc-tab">
+                        <div class="row gy-3 mb-2">
+                            <div class="col-12">
+                                <label class="form-label">توضیح کوتاه</label>
+                                <input type="text" name="short_description" class="form-control" maxlength="255" value="{{ old('short_description') }}">
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">توضیحات کامل</label>
+                                <textarea name="full_description" class="form-control" rows="6">{{ old('full_description') }}</textarea>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">اقلام مورد نیاز برای انجام خدمت</label>
+                                <ul id="needed-items-list" class="list-group mb-2">
+                                    @if(old('needed_items'))
+                                        @foreach(old('needed_items') as $need)
+                                            <li class="list-group-item d-flex align-items-center">
+                                                <input type="text" name="needed_items[]" class="form-control me-2" value="{{ $need }}">
+                                                <button type="button" class="btn btn-danger remove-btn" onclick="removeItem(this)"><i class="bi bi-x-lg"></i></button>
+                                            </li>
+                                        @endforeach
+                                    @endif
+                                </ul>
+                                <div class="input-group">
+                                    <input type="text" id="add-needed-item-input" class="form-control" placeholder="مثال: تاریخ ازدواج، شناسنامه، کارت ملی ...">
+                                    <button type="button" class="btn btn-outline-success btn-add-new" id="add-needed-item-btn"><i class="bi bi-plus"></i> افزودن مورد</button>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">نقاط ضعف / محدودیت‌های خدمت</label>
+                                <ul id="weak-points-list" class="list-group mb-2">
+                                    @if(old('weak_points'))
+                                        @foreach(old('weak_points') as $weak)
+                                            <li class="list-group-item d-flex align-items-center">
+                                                <input type="text" name="weak_points[]" class="form-control me-2" value="{{ $weak }}">
+                                                <button type="button" class="btn btn-danger remove-btn" onclick="removeItem(this)"><i class="bi bi-x-lg"></i></button>
+                                            </li>
+                                        @endforeach
+                                    @endif
+                                </ul>
+                                <div class="input-group">
+                                    <input type="text" id="add-weak-point-input" class="form-control" placeholder="مثال: نیاز به قطعه خاص، عدم تضمین دائمی و ...">
+                                    <button type="button" class="btn btn-outline-warning btn-add-new" id="add-weak-point-btn"><i class="bi bi-plus"></i> افزودن محدودیت</button>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">توضیحات مشتری (برای پرکردن توسط مشتری)</label>
+                                <textarea name="customer_note" class="form-control" rows="3" placeholder="هر توضیحی که مشتری باید وارد کند ...">{{ old('customer_note') }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- سهامداران --}}
+                    <div class="tab-pane fade" id="shareholderTabPane" role="tabpanel" aria-labelledby="shareholder-tab">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label class="form-label"><b>سهامداران و درصد سهم هرکدام</b></label>
+                                <div class="alert alert-light border shadow-sm mb-2">
+                                    <small>
+                                        درصد سهام هرکدام را وارد کنید. اگر سهامداری در این خدمت سهم ندارد، مقدار را خالی بگذارید.<br>
+                                        مجموع سهم‌ها باید حداکثر ۱۰۰ باشد.
+                                    </small>
+                                </div>
+                                @if(isset($shareholders) && count($shareholders))
+                                    <div class="row" id="shareholder-list">
+                                        @foreach($shareholders as $shareholder)
+                                            <div class="col-12 mb-2">
+                                                <div class="input-group">
+                                                    <div class="input-group-text" style="min-width:120px">{{ $shareholder->full_name }}</div>
+                                                    <input type="number"
+                                                           class="form-control"
+                                                           name="shareholders[{{ $shareholder->id }}]"
+                                                           min="0"
+                                                           max="100"
+                                                           step="0.01"
+                                                           value="{{ old('shareholders.'.$shareholder->id, '') }}"
+                                                           placeholder="درصد سهم">
+                                                    <span class="input-group-text">%</span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="alert alert-warning mt-2">هیچ سهامداری ثبت نشده است.</div>
+                                @endif
+                                <small class="form-text text-muted" id="percent-warning" style="color:red;display:none"></small>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- لیست پرینتی اقلام و موارد خدمت --}}
+                    <div class="tab-pane fade" id="allitemsTabPane" role="tabpanel" aria-labelledby="allitems-tab">
+                        <div class="print-area" id="service-print-area">
+                            <h4 class="mb-3">لیست مدارک و اطلاعات مورد نیاز جهت ارائه خدمت</h4>
+                            <ul id="print-needed-items" class="mb-3"></ul>
+                            <h5>سایر توضیحات یا محدودیت‌ها:</h5>
+                            <ul id="print-weak-points" class="mb-3"></ul>
+                            <h5>یادداشت مشتری:</h5>
+                            <div id="print-customer-note" class="border rounded p-2 bg-light" style="min-height:50px"></div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary print-btn" onclick="window.print();"><i class="bi bi-printer"></i> پرینت این صفحه</button>
+                        <div class="alert alert-info mt-3">
+                            <small>این بخش را می‌توانید چاپ بگیرید و به مشتری بدهید تا مدارک و اطلاعات را کامل کند.</small>
+                        </div>
+                    </div>
                 </div>
-            </div>
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-success btn-lg px-4"><i class="bi bi-check2-circle"></i> ثبت خدمت</button>
+                    <a href="{{ route('services.index') }}" class="btn btn-secondary btn-lg px-4">انصراف</a>
+                </div>
+            </form>
         </div>
-    </div>
-</section>
-
-<!-- Modal افزودن واحد جدید -->
-<div class="modal fade" id="addUnitModal" tabindex="-1" aria-labelledby="addUnitModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <form id="add-unit-form" class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addUnitModalLabel">افزودن واحد جدید</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="new-unit-input" class="form-control mb-2" placeholder="نام واحد جدید" required>
-                <input type="hidden" id="edit-unit-id">
-                <ul id="unit-modal-list" class="list-group mt-2"></ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    انصراف
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    ثبت واحد
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 @endsection
 
 @section('scripts')
-<script src="{{ asset('js/service-create.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // مقداردهی اولیه کد خدمت (همانند قبل)
-    let codeInput = document.getElementById('service_code');
+    function removeItem(btn) {
+        btn.closest('li').remove();
+        updatePrintList();
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        // کد دلخواه خدمت
+        let codeInput = document.getElementById('service_code');
     let customSwitch = document.getElementById('custom_code_switch');
     let loadingCode = false;
     function fetchNextCode() {
@@ -243,22 +298,81 @@ document.addEventListener('DOMContentLoaded', function () {
             fetchNextCode();
         }
     });
-
-    // پیش‌نمایش تصویر
-    const imageInput = document.getElementById('image');
-    const imagePreview = document.getElementById('image_preview');
-    if(imageInput && imagePreview){
-        imageInput.addEventListener('change', function() {
-            if (imageInput.files && imageInput.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreview.style.display = "block";
-                    imagePreview.src = e.target.result;
+        // پیش‌نمایش تصویر
+        let imageInput = document.getElementById('image');
+        let imagePreview = document.getElementById('image_preview');
+        if (imageInput && imagePreview) {
+            imageInput.addEventListener('change', function() {
+                if (imageInput.files && imageInput.files[0]) {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.style.display = "block";
+                        imagePreview.src = e.target.result;
+                    }
+                    reader.readAsDataURL(imageInput.files[0]);
                 }
-                reader.readAsDataURL(imageInput.files[0]);
+            });
+        }
+        // افزودن اقلام مورد نیاز
+        document.getElementById('add-needed-item-btn').addEventListener('click', function() {
+            let value = document.getElementById('add-needed-item-input').value.trim();
+            if(value) {
+                let li = document.createElement('li');
+                li.className = "list-group-item d-flex align-items-center";
+                li.innerHTML = `<input type="text" name="needed_items[]" class="form-control me-2" value="${value}" oninput="updatePrintList()"><button type="button" class="btn btn-danger remove-btn" onclick="removeItem(this)"><i class="bi bi-x-lg"></i></button>`;
+                document.getElementById('needed-items-list').appendChild(li);
+                document.getElementById('add-needed-item-input').value = '';
+                updatePrintList();
             }
         });
+        // افزودن نقاط ضعف
+        document.getElementById('add-weak-point-btn').addEventListener('click', function() {
+            let value = document.getElementById('add-weak-point-input').value.trim();
+            if(value) {
+                let li = document.createElement('li');
+                li.className = "list-group-item d-flex align-items-center";
+                li.innerHTML = `<input type="text" name="weak_points[]" class="form-control me-2" value="${value}" oninput="updatePrintList()"><button type="button" class="btn btn-danger remove-btn" onclick="removeItem(this)"><i class="bi bi-x-lg"></i></button>`;
+                document.getElementById('weak-points-list').appendChild(li);
+                document.getElementById('add-weak-point-input').value = '';
+                updatePrintList();
+            }
+        });
+        // چاپ لیست اقلام و محدودیت‌ها و یادداشت مشتری
+        ['needed-items-list','weak-points-list','add-needed-item-input','add-weak-point-input','customer_note'].forEach(function(id){
+            let el = document.getElementById(id);
+            if(el) el.addEventListener('input', updatePrintList);
+        });
+        document.getElementsByName('customer_note')[0].addEventListener('input', updatePrintList);
+
+        updatePrintList();
+    });
+
+    function updatePrintList(){
+        // اقلام مورد نیاز
+        let neededItems = document.querySelectorAll('#needed-items-list input[name="needed_items[]"]');
+        let neededUl = document.getElementById('print-needed-items');
+        neededUl.innerHTML = '';
+        neededItems.forEach(function(input){
+            if(input.value.trim()) {
+                let li = document.createElement('li');
+                li.textContent = input.value;
+                neededUl.appendChild(li);
+            }
+        });
+        // نقاط ضعف
+        let weakPoints = document.querySelectorAll('#weak-points-list input[name="weak_points[]"]');
+        let weakUl = document.getElementById('print-weak-points');
+        weakUl.innerHTML = '';
+        weakPoints.forEach(function(input){
+            if(input.value.trim()) {
+                let li = document.createElement('li');
+                li.textContent = input.value;
+                weakUl.appendChild(li);
+            }
+        });
+        // یادداشت مشتری
+        let note = document.getElementsByName('customer_note')[0].value;
+        document.getElementById('print-customer-note').textContent = note;
     }
-});
 </script>
 @endsection

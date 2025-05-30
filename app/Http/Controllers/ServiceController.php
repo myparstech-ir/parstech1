@@ -19,8 +19,19 @@ class ServiceController extends Controller
     {
         $serviceCategories = Category::where('category_type', 'service')->get();
         $units = Unit::orderBy('title')->get();
-        $shareholders = Shareholder::all(); // این خط برای پاس دادن به ویو لازم است
-        return view('services.create', compact('serviceCategories', 'units', 'shareholders'));
+        $shareholders = Shareholder::all();
+
+        // تولید کد خدمت بعدی (کد خودکار)
+        $last = Service::where('service_code', 'like', 'services-%')
+            ->orderByRaw('CAST(SUBSTRING(service_code, 10) AS UNSIGNED) DESC')
+            ->first();
+        if ($last && preg_match('/^services-(\d+)$/', $last->service_code, $m)) {
+            $nextCode = 'services-' . (intval($m[1]) + 1);
+        } else {
+            $nextCode = 'services-1001';
+        }
+
+        return view('services.create', compact('serviceCategories', 'units', 'shareholders', 'nextCode'));
     }
 
 
@@ -137,7 +148,10 @@ class ServiceController extends Controller
         $service = Service::findOrFail($id);
         $serviceCategories = Category::where('category_type', 'service')->get();
         $units = Unit::orderBy('title')->get();
-        return view('services.edit', compact('service', 'serviceCategories', 'units'));
+        $shareholders = Shareholder::all();
+
+        // تولید کد خدمت بعدی (در اینجا مقداردهی لازم نیست چون کد هر خدمت ثابت است)
+        return view('services.edit', compact('service', 'serviceCategories', 'units', 'shareholders'));
     }
 
     /**
