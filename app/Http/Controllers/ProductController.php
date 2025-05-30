@@ -25,15 +25,28 @@ class ProductController extends Controller
      * نمایش فرم افزودن محصول جدید
      */
     public function create()
-    {
-        $lastProduct = Product::orderBy('id', 'desc')->first();
-        $default_code = $lastProduct ? str_pad($lastProduct->id + 1, 4, '0', STR_PAD_LEFT) : '0001';
-        $categories = Category::where('category_type', 'product')->get();
-        $brands = Brand::all();
-        $units = Unit::all();
-        $shareholders = Person::where('type', 'shareholder')->get();
-        return view('products.create', compact('default_code', 'categories', 'brands', 'units', 'shareholders'));
+{
+    // گرفتن آخرین کد خودکار محصول
+    $lastAutoCodeProduct = \App\Models\Product::where('code', 'like', 'product-100%')
+        ->orderByDesc(\DB::raw('CAST(SUBSTRING(code, 9) AS UNSIGNED)'))
+        ->first();
+
+    $default_code = 'product-1001';
+    if ($lastAutoCodeProduct) {
+        // استخراج آخرین شماره
+        $lastNumber = intval(substr($lastAutoCodeProduct->code, 8));
+        $default_code = 'product-' . ($lastNumber + 1);
     }
+
+    $categories = \App\Models\Category::all();
+    $brands = \App\Models\Brand::all();
+    $units = \App\Models\Unit::all();
+    $shareholders = \App\Models\Shareholder::all();
+
+    return view('products.create', compact(
+        'categories', 'brands', 'units', 'shareholders', 'default_code'
+    ));
+}
 
     /**
      * ذخیره محصول جدید
