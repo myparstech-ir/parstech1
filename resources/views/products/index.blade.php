@@ -6,7 +6,6 @@
     <link href="https://cdn.jsdelivr.net/npm/@tailwindcss/ui@0.7.2/dist/tailwind-ui.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        /* Carousel Styles */
         .tw-carousel-indicator {
             width: 0.8rem;
             height: 0.8rem;
@@ -96,7 +95,6 @@
             flex-direction: row-reverse;
         }
 
-        /* Product Table Customizations */
         .products-table {
             width: 100%;
             min-width: 900px;
@@ -106,7 +104,7 @@
         }
         .products-table th, .products-table td {
             white-space: nowrap;
-            padding: 0.65rem 0.4rem !important;
+            padding: 0.58rem 0.3rem !important;
             text-align: center;
             vertical-align: middle;
         }
@@ -128,7 +126,7 @@
             color: #334155;
             text-align: center;
             vertical-align: middle;
-            max-width: 140px;
+            max-width: 120px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -153,7 +151,7 @@
             border-radius: 12px;
             font-size: 0.97em;
             font-weight: 500;
-            padding: 0.18em 0.8em;
+            padding: 0.12em 0.6em;
         }
         .badge-status.low { background: #fde68a; color: #a16207; }
         .badge-status.ok { background: #bbf7d0; color: #166534; }
@@ -161,13 +159,13 @@
         .btn-actions {
             display: flex;
             align-items: center;
-            gap: 0.25em;
+            gap: 0.12em;
             justify-content: center;
         }
         .products-table .btn {
-            padding: 0.32em 0.7em;
-            font-size: 0.98em;
-            border-radius: 8px;
+            padding: 0.23em 0.55em;
+            font-size: 0.93em;
+            border-radius: 7px;
             font-weight: 500;
         }
         .products-table .btn-outline-info {
@@ -188,24 +186,19 @@
         .products-table .btn-outline-danger:hover {
             background: #f87171; color: #fff; border-color: #f87171;
         }
-        @media (max-width: 1200px) {
-            .products-table { min-width: 760px; }
-        }
+        @media (max-width: 1200px) { .products-table { min-width: 700px; } }
         @media (max-width: 900px) {
-            .products-table th, .products-table td { font-size: 0.89rem !important; padding: 0.5rem 0.25rem !important; }
+            .products-table th, .products-table td { font-size: 0.89rem !important; padding: 0.38rem 0.19rem !important; }
         }
-        @media (max-width: 700px) {
-            .products-table { min-width: 520px; font-size: 0.81rem; }
-        }
+        @media (max-width: 700px) { .products-table { min-width: 520px; font-size: 0.81rem; } }
         @media (max-width: 600px) {
-            .products-table th, .products-table td { font-size: 0.74rem !important; padding: 0.27rem 0.08rem !important; }
+            .products-table th, .products-table td { font-size: 0.71rem !important; padding: 0.17rem 0.04rem !important; }
         }
     </style>
 @endsection
 
 @section('content')
 <div class="container mx-auto py-6">
-
     {{-- کاروسل محصولات کم موجودی --}}
     @if($lowStockProducts->count())
         <div
@@ -234,7 +227,13 @@
                     @foreach($lowStockProducts as $product)
                         @php
                             $img = $product->image ?? (is_array($product->gallery ?? null) && count($product->gallery) ? $product->gallery[0] : null);
-                            $imgUrl = $img ? (str_starts_with($img, 'http') ? $img : asset('storage/products/'.$img)) : asset('/images/no-image.png');
+                            $imgUrl = $img
+                                ? (str_starts_with($img, 'http')
+                                    ? $img
+                                    : (file_exists(public_path('storage/products/'.$img))
+                                        ? asset('storage/products/'.$img)
+                                        : asset('images/no-image.png')))
+                                : asset('images/no-image.png');
                             $discount = $product->discount ? intval($product->discount) : 0;
                             $expired = isset($product->expire_date) && strtotime($product->expire_date) < time();
                         @endphp
@@ -243,7 +242,7 @@
                             <div class="carousel-bg-fade"></div>
                             <div class="carousel-content flex flex-col md:flex-row items-center gap-5 p-5 w-full">
                                 <div class="flex flex-col items-center justify-center w-full md:w-auto">
-                                    <img src="{{ $imgUrl }}" alt="تصویر محصول" class="carousel-product-img mb-3 shadow" onerror="this.src='/images/no-image.png'">
+                                    <img src="{{ $imgUrl }}" alt="تصویر محصول" class="carousel-product-img mb-3 shadow" onerror="this.src='{{ asset('images/no-image.png') }}'">
                                     <span class="carousel-badge brand">{{ $product->brand?->name ?? '-' }}</span>
                                     <span class="carousel-badge unit">{{ $product->unit ?? '-' }}</span>
                                 </div>
@@ -487,7 +486,9 @@
 @endsection
 
 @section('scripts')
+    @if(!class_exists(\Livewire\Livewire::class))
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @endif
     <script>
         // مرتب سازی یا فیلتر روی جدول با کلیک روی عنوان یا مقدار
         function filterColumn(column) {
