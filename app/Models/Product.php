@@ -2,58 +2,58 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
     use HasFactory;
+
+    // مقدار پیش فرض هشدار موجودی
     public const STOCK_ALERT_DEFAULT = 1;
+
     protected $fillable = [
-        'type',
         'name',
         'code',
         'category_id',
         'brand_id',
+        'buy_price',
+        'sell_price',
+        'discount',
+        'stock',
+        'stock_alert',
+        'min_order_qty',
+        'expire_date',
+        'added_at',
+        'is_active',
+        'unit',
+        'weight',
+        'barcode',
+        'store_barcode',
         'image',
-        'gallery',
         'video',
+        'gallery',
         'short_desc',
         'description',
-        'stock',
-        'min_stock',
-        'unit',
-        'barcode',
-        'is_active',
-        'buy_price',    // ← اضافه کن
-        'sell_price',   // ← اضافه کن
-        'discount',     // ← اگر داشتی
-        'store_barcode' // ← اگر داشتی
     ];
 
-    protected $casts = [
-        'gallery' => 'array',
-        'is_active' => 'boolean',
-        'stock' => 'integer',
-        'min_stock' => 'integer'
-    ];
-
+    // ارتباط با دسته‌بندی
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
 
+    // ارتباط با برند
     public function brand()
     {
         return $this->belongsTo(Brand::class);
     }
 
-    public function saleItems()
+    // گالری تصاویر (در صورت ذخیره به صورت JSON)
+    public function getGalleryAttribute($value)
     {
-        return $this->hasMany(SaleItem::class);
+        return $value ? json_decode($value, true) : [];
     }
-    public function shareholders()
-    {
-        return $this->belongsToMany(\App\Models\Person::class, 'product_shareholder', 'product_id', 'person_id')
-            ->withPivot('percent');
-    }
+
+    // اگر نیاز به متدهای بیشتری بود اینجا اضافه کن
 }
