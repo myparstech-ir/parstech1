@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 let check = (10 - (sum % 10)) % 10;
                 field.value = toPersianNumber(base + check);
                 field.dispatchEvent(new Event('blur'));
-                Swal.fire({toast:true,position:'top-end',icon:'success',title:'بارکد استاندارد تولید شد',showConfirmButton:false,timer:1300,iconColor:'#1abc9c',background:'#e9fff4',color:'#173f28',customClass:{popup:'swal2-sm'}});
+                Swal.fire({toast:true,position:'top-end',icon:'success',title:'بارکد استاندارد تولید شد',showConfirmButton:false,timer:1300,iconColor:'#1abc9c',background:'#e9fff4'});
             });
         }
     }
@@ -191,5 +191,23 @@ document.addEventListener('DOMContentLoaded', function () {
         window.scrollTo({ top: firstError.offsetTop-50, behavior: "smooth" });
     }
 
-    
+    // --- تبدیل اعداد به انگلیسی قبل از ذخیره در دیتابیس --- //
+    document.getElementById('product-form').addEventListener('submit', function(e){
+        // buy_price
+        let buy = document.querySelector('input[name=buy_price]');
+        if(buy) buy.value = unformatDecimalPersian(buy.value);
+        // sell_price
+        let sell = document.querySelector('input[name=sell_price]');
+        if(sell) sell.value = unformatDecimalPersian(sell.value);
+        // stock و min_order_qty و سایر اعداد
+        ['stock','min_order_qty','discount','weight','barcode','store_barcode'].forEach(name=>{
+            let inp = document.querySelector('input[name="'+name+'"]');
+            if(inp) inp.value = toEnglishNumber(inp.value);
+        });
+        // درصد سهامداران
+        document.querySelectorAll('.shareholder-percent').forEach(inp=>{
+            inp.value = toEnglishNumber(inp.value);
+        });
+    });
+
 });

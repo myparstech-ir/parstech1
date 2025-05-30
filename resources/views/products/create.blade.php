@@ -4,7 +4,6 @@
 @section('head')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ asset('css/products-create.css') }}">
- 
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/dropzone@6.0.0-beta.2/dist/dropzone.css" />
@@ -67,6 +66,12 @@
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-box"></i> موجودی اولیه</label>
                         <input type="text" name="stock" class="form-control persian-number" value="{{ old('stock', 1) }}">
+                    </div>
+                    {{-- هشدار موجودی --}}
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold"><i class="bi bi-exclamation-triangle"></i> هشدار موجودی</label>
+                        <input type="text" name="stock_alert" class="form-control persian-number" value="{{ old('stock_alert', 1) }}">
+                        <small class="text-muted">در صورت رسیدن موجودی به این عدد، هشدار نمایش داده می‌شود.</small>
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold"><i class="bi bi-cart-plus"></i> حداقل سفارش</label>
@@ -137,9 +142,11 @@
                             <div class="col-12 col-md-6">
                                 <label class="form-label">واحد اندازه‌گیری</label>
                                 <select name="unit" id="selected-unit" class="form-select">
-                                    <option value="">انتخاب کنید...</option>
+                                    <option value="عدد" @if(old('unit', 'عدد') == 'عدد') selected @endif>عدد</option>
                                     @foreach($units as $unit)
-                                        <option value="{{ $unit->title }}" @if(old('unit')==$unit->title) selected @endif>{{ $unit->title }}</option>
+                                        @if($unit->title != 'عدد')
+                                            <option value="{{ $unit->title }}" @if(old('unit')==$unit->title) selected @endif>{{ $unit->title }}</option>
+                                        @endif
                                     @endforeach
                                 </select>
                                 <button type="button" class="btn btn-outline-info mt-2 w-100" data-bs-toggle="modal" data-bs-target="#unitModal">مدیریت واحدها</button>
@@ -209,7 +216,7 @@
                                     <small>
                                         اگر هیچ سهامداری انتخاب نشود، سهم محصول به طور مساوی بین همه سهامداران تقسیم می‌شود.<br>
                                         اگر فقط یک نفر انتخاب شود، کل محصول برای او خواهد بود.<br>
-                                        اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی بگذارید به طور مساوی پخش می‌شود.)
+                                        اگر چند نفر انتخاب شوند، درصد هرکدام را وارد کنید (مجموع باید ۱۰۰ باشد، اگر خالی بگذارید به طور مساوی تقسیم می‌شود).
                                     </small>
                                 </div>
                                 @if(isset($shareholders) && count($shareholders))
@@ -286,7 +293,6 @@
                 autoClose: true,
                 initialValue: false
             });
-
             // کنترل سوییچ کد کالا
             const codeSwitch = document.getElementById('code-edit-switch');
             const codeInput = document.getElementById('product-code');
