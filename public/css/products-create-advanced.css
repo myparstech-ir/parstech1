@@ -178,8 +178,13 @@ input[type="file"].form-control::-webkit-file-upload-button {
 :-ms-input-placeholder { color: var(--pc-muted) !important; }
 ::placeholder { color: var(--pc-muted) !important; }
 input:focus::placeholder { color: #cce0e5 !important; }
+/* رفع تداخل سوییچ و چک‌باکس بوت‌استرپ: فقط رنگ دادن، بدون accent-color */
 .form-check-input:checked { background-color: var(--pc-primary); border-color: var(--pc-primary);}
-input[type=checkbox], input[type=radio] { accent-color: var(--pc-primary); }
+input[type="checkbox"]:focus, input[type="radio"]:focus { outline: 1.5px solid var(--pc-primary); }
+input[type="checkbox"]:active, input[type="radio"]:active { outline: none; }
+/* accent-color حذف شد برای سازگاری کامل با سوییچ بوت‌استرپ */
+
+/* سایر استایل‌ها */
 .alert-danger {
     background: #fff2f2;
     color: var(--pc-danger);
