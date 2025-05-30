@@ -210,7 +210,7 @@
                                         مجموع سهم‌ها باید حداکثر ۱۰۰ باشد.
                                     </small>
                                 </div>
-                                @if(isset($shareholders) && count($shareholders))
+                                @if(isset($shareholders) && $shareholders->count())
                                     <div class="row" id="shareholder-list">
                                         @foreach($shareholders as $shareholder)
                                             <div class="col-12 mb-2">
@@ -272,32 +272,19 @@
     document.addEventListener('DOMContentLoaded', function () {
         // کد دلخواه خدمت
         let codeInput = document.getElementById('service_code');
-    let customSwitch = document.getElementById('custom_code_switch');
-    let loadingCode = false;
-    function fetchNextCode() {
-        if(loadingCode) return;
-        loadingCode = true;
-        fetch('/services/next-code')
-            .then(res => res.json())
-            .then(data => {
-                codeInput.value = data.code;
-                codeInput.readOnly = true;
-                loadingCode = false;
-            }).catch(() => {
-                codeInput.value = '';
-                loadingCode = false;
+        let customSwitch = document.getElementById('custom_code_switch');
+        if (codeInput && customSwitch) {
+            customSwitch.addEventListener('click', function () {
+                if (codeInput.readOnly) {
+                    codeInput.readOnly = false;
+                    codeInput.value = '';
+                    codeInput.focus();
+                } else {
+                    codeInput.readOnly = true;
+                    codeInput.value = '{{ $nextCode ?? '' }}';
+                }
             });
-    }
-    fetchNextCode();
-    customSwitch.addEventListener('change', function() {
-        if(customSwitch.checked) {
-            codeInput.readOnly = false;
-            codeInput.value = '';
-            codeInput.focus();
-        } else {
-            fetchNextCode();
         }
-    });
         // پیش‌نمایش تصویر
         let imageInput = document.getElementById('image');
         let imagePreview = document.getElementById('image_preview');

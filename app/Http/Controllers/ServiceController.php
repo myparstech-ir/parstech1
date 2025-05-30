@@ -19,7 +19,7 @@ class ServiceController extends Controller
     {
         $serviceCategories = Category::where('category_type', 'service')->get();
         $units = Unit::orderBy('title')->get();
-        $shareholders = Shareholder::all();
+        $shareholders = Person::where('type', 'shareholder')->get();
 
         // تولید کد خدمت بعدی (کد خودکار)
         $last = Service::where('service_code', 'like', 'services-%')
