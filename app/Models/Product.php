@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
+    use HasFactory;
+    public const STOCK_ALERT_DEFAULT = 1;
     protected $fillable = [
         'type',
         'name',
