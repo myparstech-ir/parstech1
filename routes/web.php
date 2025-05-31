@@ -59,15 +59,34 @@ Route::get('/categories/list', [CategoryApiController::class, 'list']);
 
 
 
+// روت صفحه اصلی یا تست
+Route::get('/', function () {
+    return view('welcome');
+});
 
+// روت صفحه لیست دسته‌بندی‌ها (مثلاً نمایش jsTree)
+Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 
-
-
-// توجه: این روت باید بعد از تعریف resource categories و خارج از groupهای محدودکننده باشد یا دقیقاً در همانجا که صفحه لیست دسته‌بندی لود می‌شود.
+// روت خروجی json برای jsTree
 Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.tree-data');
 
-// ریسورس دسته‌بندی (اگر داری)
-Route::resource('categories', CategoryController::class);
+// روت ساخت دسته‌بندی جدید
+Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
+// روت ثبت دسته جدید
+Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+// روت فرم ویرایش
+Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+// روت ثبت ویرایش
+Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+// روت حذف
+Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+
+
+
+
+
+
 
 // روت‌های مرکزی (بدون tenant)
 Route::get('/', function () {

@@ -7,17 +7,22 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    // لیست دسته‌بندی‌ها
+    /**
+     * نمایش صفحه لیست دسته‌بندی‌ها (درختی)
+     */
     public function index()
     {
-        // برای سازگاری با jsTree ارسال دسته‌ها لازم نیست
+        // توجه: برای jsTree نیازی به ارسال دسته‌ها نیست
         return view('categories.index');
     }
 
-    // خروجی درختی (json) برای jsTree
+    /**
+     * داده‌های درختی دسته‌بندی‌ها برای jsTree (خروجی JSON)
+     */
     public function treeData()
     {
         $categories = Category::all();
+
         $tree = [];
         foreach ($categories as $cat) {
             $tree[] = [
@@ -25,8 +30,8 @@ class CategoryController extends Controller
                 'parent' => $cat->parent_id ? $cat->parent_id : '#',
                 'text' =>
                     e($cat->name) .
-                    ($cat->code ? " <span class='cat-code'>(".e($cat->code).")</span>" : '') .
-                    ($cat->category_type ? " <span class='cat-type'>".e($cat->category_type)."</span>" : ''),
+                    ($cat->code ? " <span class='cat-code'>(" . e($cat->code) . ")</span>" : '') .
+                    ($cat->category_type ? " <span class='cat-type'>" . e($cat->category_type) . "</span>" : ''),
                 'icon' => $cat->category_type === 'product' ? 'fa fa-box' :
                           ($cat->category_type === 'service' ? 'fa fa-cogs' : 'fa fa-user'),
                 'state' => ['opened' => $cat->parent_id ? false : true],
@@ -39,6 +44,9 @@ class CategoryController extends Controller
         return response()->json($tree);
     }
 
+    /**
+     * نمایش فرم ساخت دسته‌بندی جدید
+     */
     public function create()
     {
         $personCategories = Category::where('category_type', 'person')->get();
@@ -55,6 +63,9 @@ class CategoryController extends Controller
         ));
     }
 
+    /**
+     * ثبت دسته‌بندی جدید
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -85,6 +96,9 @@ class CategoryController extends Controller
             ->with('success', 'دسته‌بندی با موفقیت ثبت شد.');
     }
 
+    /**
+     * نمایش فرم ویرایش دسته‌بندی
+     */
     public function edit($id)
     {
         $category = Category::findOrFail($id);
@@ -94,6 +108,9 @@ class CategoryController extends Controller
         return view('categories.edit', compact('category', 'categories'));
     }
 
+    /**
+     * ثبت ویرایش دسته‌بندی
+     */
     public function update(Request $request, $id)
     {
         $category = Category::findOrFail($id);
@@ -116,6 +133,9 @@ class CategoryController extends Controller
             ->with('success', 'دسته‌بندی با موفقیت بروزرسانی شد.');
     }
 
+    /**
+     * حذف دسته‌بندی و زیرشاخه‌های آن
+     */
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
