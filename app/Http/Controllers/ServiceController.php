@@ -7,13 +7,14 @@ use App\Models\Service;
 use App\Models\Category;
 use App\Models\Unit;
 use App\Models\Person; // این خط را اضافه کن
+use App\Models\SaleItem;
 
 class ServiceController extends Controller
 {
     /**
      * نمایش فرم افزودن خدمت جدید
      */
-    public function create()
+   public function create()
     {
         $serviceCategories = Category::where('category_type', 'service')->get();
         $units = Unit::orderBy('title')->get();
