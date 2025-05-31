@@ -34,27 +34,65 @@ class ServiceController extends Controller
     /**
      * لیست خدمات
      */
-    public function index()
+    public function index(Request $request)
     {
         $serviceCategories = Category::where('category_type', 'service')->get();
+        $units = Unit::orderBy('title')->get();
 
         $query = Service::query();
 
-        if ($request->filled('q')) {
-            $q = $request->input('q');
-            $query->where(function ($sub) use ($q) {
-                $sub->where('title', 'like', "%$q%")
-                    ->orWhere('service_code', 'like', "%$q%");
-            });
+        if ($request->filled('name')) {
+            $query->where('title', 'like', '%' . $request->input('name') . '%');
         }
-        if ($request->filled('service_category_id')) {
-            $query->where('service_category_id', $request->input('service_category_id'));
+        if ($request->filled('category_id')) {
+            $query->where('service_category_id', $request->input('category_id'));
+        }
+        if ($request->filled('unit')) {
+            $query->where('unit', $request->input('unit'));
         }
 
-        $services = $query->latest()->paginate(20);
+        // مقداردهی پیش‌فرض برای مرتب‌سازی
+        $sort = $request->get('sort', 'id');
+        $dir = $request->get('dir', 'desc');
+        if (!in_array($sort, ['title', 'service_code', 'price', 'sells_count', 'profit_sum', 'id'])) $sort = 'id';
+        if (!in_array($dir, ['asc', 'desc'])) $dir = 'desc';
 
-        // این خط مهم است!
-        return view('services.index', compact('services', 'serviceCategories', 'request'));
+        // آمار فروش و سود هر خدمت (اگر جدول SaleItem داری)
+        $services = $query
+            ->withCount(['saleItems as sells_count' => function($q) {
+                $q->select(\DB::raw('count(*)'));
+            }])
+            ->withSum(['saleItems as profit_sum' => function($q) {
+                $q->select(\DB::raw('sum(unit_price * quantity - discount)'));
+            }])
+            ->orderBy($sort === 'profit_sum' ? \DB::raw('profit_sum') : $sort, $dir)
+            ->paginate(20);
+
+        // کارت‌های آماری
+        $totalServices = Service::count();
+        $totalSells = \App\Models\SaleItem::whereHas('service')->count();
+        $totalProfit = \App\Models\SaleItem::select(\DB::raw('sum(unit_price * quantity - discount) as profit'))->first()->profit ?? 0;
+
+        // خدمات پرفروش (برای کاروسل)
+        $topServices = Service::withCount(['saleItems as sells_count'])
+            ->orderByDesc('sells_count')
+            ->take(5)->get();
+
+        // چارت فروش ماهانه
+        $chartData = \App\Models\SaleItem::select(
+                \DB::raw("DATE_FORMAT(created_at, '%Y-%m') as yyyymm"),
+                \DB::raw("sum(unit_price * quantity - discount) as profit_sum"),
+                \DB::raw('sum(quantity) as sells_count')
+            )
+            ->whereHas('service')
+            ->groupBy('yyyymm')
+            ->orderBy('yyyymm')
+            ->get();
+
+        return view('services.index', compact(
+            'services', 'serviceCategories', 'units',
+            'totalServices', 'totalSells', 'totalProfit', 'topServices', 'chartData', 'sort', 'dir'
+        ));
     }
 
     public function ajaxList(Request $request)
