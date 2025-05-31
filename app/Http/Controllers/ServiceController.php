@@ -51,38 +51,45 @@ class ServiceController extends Controller
             $query->where('unit', $request->input('unit'));
         }
 
-        // مقداردهی پیش‌فرض برای مرتب‌سازی
+        // مرتب سازی
         $sort = $request->get('sort', 'id');
         $dir = $request->get('dir', 'desc');
         if (!in_array($sort, ['title', 'service_code', 'price', 'sells_count', 'profit_sum', 'id'])) $sort = 'id';
         if (!in_array($dir, ['asc', 'desc'])) $dir = 'desc';
 
-        // آمار فروش و سود هر خدمت (اگر جدول SaleItem داری)
-        $services = $query
-            ->withCount(['saleItems as sells_count' => function($q) {
-                $q->select(\DB::raw('count(*)'));
-            }])
-            ->withSum(['saleItems as profit_sum' => function($q) {
-                $q->select(\DB::raw('sum(unit_price * quantity - discount)'));
-            }])
-            ->orderBy($sort === 'profit_sum' ? \DB::raw('profit_sum') : $sort, $dir)
-            ->paginate(20);
+        // اضافه کردن تعداد فروش به هر سرویس
+        $query->withCount(['saleItems as sells_count']);
 
-        // کارت‌های آماری
+        // اضافه کردن جمع profit به هر سرویس با ساب‌کوری
+        $query->addSelect([
+            'profit_sum' => SaleItem::select(DB::raw('COALESCE(SUM(unit_price * quantity - discount), 0)'))
+                ->whereColumn('service_id', 'services.id')
+        ]);
+
+        // مرتب‌سازی بر اساس profit_sum یا سایر فیلدها
+        if ($sort === 'profit_sum') {
+            $query->orderByDesc('profit_sum');
+        } else {
+            $query->orderBy($sort, $dir);
+        }
+
+        $services = $query->paginate(20);
+
+        // آمار کلی
         $totalServices = Service::count();
-        $totalSells = \App\Models\SaleItem::whereHas('service')->count();
-        $totalProfit = \App\Models\SaleItem::select(\DB::raw('sum(unit_price * quantity - discount) as profit'))->first()->profit ?? 0;
+        $totalSells = SaleItem::whereHas('service')->count();
+        $totalProfit = SaleItem::select(DB::raw('SUM(unit_price * quantity - discount) as profit'))->first()->profit ?? 0;
 
-        // خدمات پرفروش (برای کاروسل)
+        // خدمات پرفروش
         $topServices = Service::withCount(['saleItems as sells_count'])
             ->orderByDesc('sells_count')
             ->take(5)->get();
 
         // چارت فروش ماهانه
-        $chartData = \App\Models\SaleItem::select(
-                \DB::raw("DATE_FORMAT(created_at, '%Y-%m') as yyyymm"),
-                \DB::raw("sum(unit_price * quantity - discount) as profit_sum"),
-                \DB::raw('sum(quantity) as sells_count')
+        $chartData = SaleItem::select(
+                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as yyyymm"),
+                DB::raw("SUM(unit_price * quantity - discount) as profit_sum"),
+                DB::raw('SUM(quantity) as sells_count')
             )
             ->whereHas('service')
             ->groupBy('yyyymm')
