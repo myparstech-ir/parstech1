@@ -52,10 +52,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ---------------- دسته‌بندی‌ها ----------------
     Route::resource('categories', CategoryController::class)->except(['show']);
-    Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.tree-data');
-    Route::get('/categories/list', [CategoryController::class, 'apiList']);
+    Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.treeData');
     Route::get('/categories/person-search', [CategoryController::class, 'personSearch'])->name('categories.person-search');
     Route::get('/api/categories', [CategoryController::class, 'apiList']);
+    Route::get('/categories/tree', [CategoryController::class, 'treePage'])->name('categories.tree');
 
     // ---------------- محصولات ----------------
     Route::resource('products', ProductController::class);

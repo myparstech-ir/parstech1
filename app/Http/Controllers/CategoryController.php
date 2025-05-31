@@ -8,14 +8,16 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    
+
     /**
      * نمایش صفحه لیست دسته‌بندی‌ها (درختی)
      */
     public function index()
     {
-        // توجه: برای jsTree نیازی به ارسال دسته‌ها نیست
-        return view('categories.index');
+        // تمام دسته‌های والد همراه با زیرشاخه و محصولات به صورت بازگشتی
+        $categories = Category::with(['children', 'products'])->whereNull('parent_id')->get();
+        return view('categories.index', compact('categories'));
+
     }
 
     /**
