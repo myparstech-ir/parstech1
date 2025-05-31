@@ -55,10 +55,10 @@ Route::get('/categories/list', [CategoryApiController::class, 'list']);
 // روت داده‌های درختی دسته‌بندی‌ها برای jsTree
 
 // اگر auth داری و این صفحه فقط بعد از لاگین قابل نمایش است، این روت را داخل همان group بگذار
+
+
+
 Route::resource('categories', CategoryController::class);
-
-
-
 
 
 
@@ -67,7 +67,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ---------------- دسته‌بندی‌ها ----------------
     // روت نمایش لیست، ساخت، ویرایش، حذف و ... دسته‌بندی
-    Route::resource('categories', CategoryController::class)->except(['show']);
 
     // روت مخصوص داده‌های درختی برای jsTree و ajax
     Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.tree-data');
@@ -78,7 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/api/categories', [CategoryController::class, 'apiList']);
 
     // ---------------- محصولات ----------------
-    Route::resource('products', ProductController::class);
+
     Route::post('/products/upload', [ProductController::class, 'upload'])->name('products.upload');
 
     // ---------------- خدمات ----------------
