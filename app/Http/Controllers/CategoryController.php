@@ -7,49 +7,47 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    // لیست دسته‌بندی‌ها با زیر دسته‌ها
+    // لیست دسته‌بندی‌ها (صفحه درختی)
     public function index()
     {
-        $categories = Category::with('children')->whereNull('parent_id')->orderBy('name')->get();
-        return view('categories.index', compact('categories'));
+        return view('categories.index');
     }
 
-    public function list(Request $request)
+    // داده‌های درختی برای jsTree
+    public function treeData(Request $request)
     {
-        $query = $request->input('q', '');
-        $limit = intval($request->input('limit', 5));
+        $categories = Category::all();
 
-        $categories = Category::query()
-            // اگر type نداری خط زیر را حذف کن
-            //->where('type', 'product')
-            ->when($query, function($q) use ($query) {
-                $q->where('name', 'like', '%'.$query.'%');
-            })
-            ->orderByDesc('id')
-            ->limit($limit)
-            ->get(['id', 'name']);
+        $tree = [];
+        foreach ($categories as $cat) {
+            $tree[] = [
+                'id' => $cat->id,
+                'parent' => $cat->parent_id ? $cat->parent_id : '#',
+                'text' =>
+                    e($cat->name) .
+                    ($cat->code ? " <span class='cat-code'>(".e($cat->code).")</span>" : '') .
+                    ($cat->category_type ? " <span class='cat-type'>".e($cat->category_type)."</span>" : ''),
+                'icon' => $cat->category_type === 'product' ? 'fa fa-box' :
+                          ($cat->category_type === 'service' ? 'fa fa-cogs' : 'fa fa-user'),
+                'state' => ['opened' => $cat->parent_id ? false : true],
+                'data' => [
+                    'description' => $cat->description,
+                    'image' => $cat->image,
+                ]
+            ];
+        }
 
-        return response()->json([
-            'items' => $categories,
-        ]);
+        return response()->json($tree);
     }
 
+    // فرم ساخت دسته جدید
     public function create()
     {
-        $personCategories = Category::where('category_type', 'person')->get();
-        $productCategories = Category::where('category_type', 'product')->get();
-        $serviceCategories = Category::where('category_type', 'service')->get();
-
-        $nextPersonCode = 'per' . (Category::where('category_type', 'person')->count() + 1001);
-        $nextProductCode = 'pro' . (Category::where('category_type', 'product')->count() + 1001);
-        $nextServiceCode = 'ser' . (Category::where('category_type', 'service')->count() + 1001);
-
-        return view('categories.create', compact(
-            'personCategories', 'productCategories', 'serviceCategories',
-            'nextPersonCode', 'nextProductCode', 'nextServiceCode'
-        ));
+        $categories = Category::all();
+        return view('categories.create', compact('categories'));
     }
 
+    // ذخیره دسته جدید
     public function store(Request $request)
     {
         $request->validate([
@@ -80,6 +78,7 @@ class CategoryController extends Controller
             ->with('success', 'دسته‌بندی با موفقیت ثبت شد.');
     }
 
+    // فرم ویرایش دسته
     public function edit($id)
     {
         $category = Category::findOrFail($id);
@@ -89,6 +88,7 @@ class CategoryController extends Controller
         return view('categories.edit', compact('category', 'categories'));
     }
 
+    // ذخیره ویرایش دسته
     public function update(Request $request, $id)
     {
         $category = Category::findOrFail($id);
@@ -108,15 +108,13 @@ class CategoryController extends Controller
         $category->update($data);
 
         return redirect()->route('categories.index')
-            ->with('success', 'دسته‌بندی با موفقیت بروزرسانی شد.');
+            ->with('success', 'دسته‌بندی با موفقیت ویرایش شد.');
     }
 
+    // حذف دسته
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
-        foreach ($category->children as $child) {
-            $child->delete();
-        }
         $category->delete();
         return redirect()->route('categories.index')
             ->with('success', 'دسته‌بندی با موفقیت حذف شد.');

@@ -62,9 +62,26 @@ Route::get('/categories/list', [CategoryApiController::class, 'list']);
 
 
 
+Route::get('/', function () {
+    return view('welcome');
+});
 
+// صفحه نمایش لیست درختی دسته‌بندی‌ها
+Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 
+// خروجی داده‌های دسته‌بندی برای jsTree
+Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.tree-data');
 
+// فرم ساخت دسته جدید
+Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
+// ثبت دسته جدید
+Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+// فرم ویرایش دسته
+Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+// ذخیره ویرایش دسته
+Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+// حذف دسته
+Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
 
 // روت‌های مرکزی (بدون tenant)
