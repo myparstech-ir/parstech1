@@ -41,6 +41,7 @@ class Service extends Model
 
     public function unit()
     {
+        // اگر در دیتابیس هم unit_id داری و جدول units هست
         return $this->belongsTo(Unit::class, 'unit_id');
     }
 

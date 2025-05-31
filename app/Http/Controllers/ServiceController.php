@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Unit;
 use App\Models\Person; // این خط را اضافه کن
 use App\Models\SaleItem;
+use Illuminate\Support\Facades\DB;
 
 class ServiceController extends Controller
 {
