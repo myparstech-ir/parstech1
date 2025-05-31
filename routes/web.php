@@ -43,7 +43,7 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
 
 
-Route::get('/categories/list', [CategoryApiController::class, 'list']);
+
 
 
 
@@ -58,35 +58,9 @@ Route::get('/categories/list', [CategoryApiController::class, 'list']);
 
 
 
-Route::resource('categories', CategoryController::class);
 
 
 
-
-Route::middleware(['auth', 'verified'])->group(function () {
-
-    // ---------------- دسته‌بندی‌ها ----------------
-    // روت نمایش لیست، ساخت، ویرایش، حذف و ... دسته‌بندی
-
-    // روت مخصوص داده‌های درختی برای jsTree و ajax
-    Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.tree-data');
-
-    // روت‌های جستجوی ajax یا api دسته‌بندی‌ها (در صورت نیاز)
-    Route::get('categories/list', [CategoryController::class, 'apiList']);
-    Route::get('/categories/person-search', [CategoryController::class, 'personSearch'])->name('categories.person-search');
-    Route::get('/api/categories', [CategoryController::class, 'apiList']);
-
-    // ---------------- محصولات ----------------
-
-    Route::post('/products/upload', [ProductController::class, 'upload'])->name('products.upload');
-
-    // ---------------- خدمات ----------------
-    Route::resource('services', ServiceController::class);
-    Route::get('/services/next-code', [ServiceController::class, 'nextCode']);
-
-    // ... سایر روت‌ها (مالی، فروش، پروفایل و غیره) ...
-    // اینجا همه گروه‌های دیگر را طبق نیاز پروژه‌ات قرار بده
-});
 
 
 
@@ -183,6 +157,14 @@ Route::post('/register', [RegisterController::class, 'register']);
 
 // Protected Routes
 Route::middleware(['auth', 'verified'])->group(function () {
+
+        // ---------------- دسته‌بندی‌ها ----------------
+        Route::resource('categories', CategoryController::class)->except(['show']);
+        Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.tree-data');
+        Route::get('/categories/list', [CategoryController::class, 'apiList']);
+        Route::get('/categories/person-search', [CategoryController::class, 'personSearch'])->name('categories.person-search');
+        Route::get('/api/categories', [CategoryController::class, 'apiList']);
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/sales-data/{period}', [DashboardController::class, 'getSalesData']);
@@ -284,7 +266,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('products', ProductController::class);
     Route::post('/products/upload', [ProductController::class, 'upload'])->name('products.upload');
 
-    Route::get('categories/list', [CategoryController::class, 'apiList']);
+
 
 
     Route::get('/services/formbuilder', function () {
@@ -409,7 +391,7 @@ Route::prefix('sales')->name('sales.')->group(function () {
 Route::get('/api/categories', [CategoryController::class, 'apiList']);
 
 
-Route::get('/categories/list', [CategoryController::class, 'list']);
+
 
 
 require __DIR__.'/auth.php';
