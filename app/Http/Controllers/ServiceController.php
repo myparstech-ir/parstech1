@@ -36,8 +36,9 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        // فیلترها
-        $query = Service::with('category');
+        $serviceCategories = Category::where('category_type', 'service')->get();
+
+        $query = Service::query();
 
         if ($request->filled('q')) {
             $q = $request->input('q');
@@ -50,45 +51,10 @@ class ServiceController extends Controller
             $query->where('service_category_id', $request->input('service_category_id'));
         }
 
-        // آمار فروش و سود هر خدمت (اگر جدول SaleItem داری)
-        $services = $query
-            ->withCount(['saleItems as sells_count' => function($q) {
-                $q->select(DB::raw('count(*)'));
-            }])
-            ->withSum(['saleItems as profit_sum' => function($q) {
-                $q->select(DB::raw('sum(unit_price * quantity - discount)'));
-            }])
-            ->latest()->paginate(20);
+        $services = $query->latest()->paginate(20);
 
-        // کارت‌های آماری (اگر جدول SaleItem داری)
-        $totalServices = Service::count();
-        $totalSells = SaleItem::whereHas('service')->count();
-        $totalProfit = SaleItem::select(DB::raw('sum(unit_price * quantity - discount) as profit'))->first()->profit ?? 0;
-
-        // دسته‌ها و واحدها
-        $serviceCategories = Category::where('category_type', 'service')->get();
-        $units = Unit::orderBy('title')->get();
-
-        // خدمات پرفروش (برای کاروسل)
-        $topServices = Service::withCount(['saleItems as sells_count'])
-            ->orderByDesc('sells_count')
-            ->take(5)->get();
-
-        // چارت فروش ماهانه
-        $chartData = SaleItem::select(
-            DB::raw("DATE_FORMAT(created_at, '%Y-%m') as yyyymm"),
-            DB::raw("sum(unit_price * quantity - discount) as profit_sum"),
-            DB::raw('sum(quantity) as sells_count')
-        )
-        ->whereHas('service')
-        ->groupBy('yyyymm')
-        ->orderBy('yyyymm')
-        ->get();
-
-        return view('services.index', compact(
-            'services', 'serviceCategories', 'units',
-            'totalServices', 'totalSells', 'totalProfit', 'topServices', 'chartData'
-        ));
+        // این خط مهم است!
+        return view('services.index', compact('services', 'serviceCategories', 'request'));
     }
 
     public function ajaxList(Request $request)
