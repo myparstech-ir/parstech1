@@ -18,7 +18,6 @@ class CategoryController extends Controller
     public function treeData()
     {
         $categories = Category::all();
-
         $tree = [];
         foreach ($categories as $cat) {
             $tree[] = [
@@ -29,7 +28,7 @@ class CategoryController extends Controller
                     ($cat->code ? " <span class='cat-code'>(".e($cat->code).")</span>" : '') .
                     ($cat->category_type ? " <span class='cat-type'>".e($cat->category_type)."</span>" : ''),
                 'icon' => $cat->category_type === 'product' ? 'fa fa-box' :
-                        ($cat->category_type === 'service' ? 'fa fa-cogs' : 'fa fa-user'),
+                          ($cat->category_type === 'service' ? 'fa fa-cogs' : 'fa fa-user'),
                 'state' => ['opened' => $cat->parent_id ? false : true],
                 'data' => [
                     'description' => $cat->description,
