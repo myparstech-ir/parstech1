@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SaleItem extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'sale_id',
         'product_id',
+        'service_id',
         'quantity',
         'unit_price',
         'discount',
@@ -18,13 +22,8 @@ class SaleItem extends Model
         'unit',
     ];
 
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
-
     public function service()
     {
-        return $this->belongsTo(Service::class);
+        return $this->belongsTo(Service::class, 'service_id');
     }
 }
