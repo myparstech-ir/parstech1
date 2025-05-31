@@ -18,7 +18,11 @@ class Person extends Model
         'birth_date', 'marriage_date', 'join_date', 'company_name', 'title'
     ];
 
-
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'service_shareholder', 'person_id', 'service_id')
+            ->withPivot('percent');
+    }
 
     protected $appends = ['display_name'];
 

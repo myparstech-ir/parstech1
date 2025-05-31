@@ -14,8 +14,10 @@ class Service extends Model
         'short_description', 'description', 'image', 'is_active', 'is_vat_included', 'is_discountable',
         'service_info', 'info_link', 'full_description'
     ];
+
     public function shareholders()
     {
+        // توجه به استفاده از persons
         return $this->belongsToMany(Person::class, 'service_shareholder', 'service_id', 'person_id')
             ->withPivot('percent');
     }
@@ -49,7 +51,6 @@ class Service extends Model
             ]
         );
 
-        // ذخیره id محصول معادل (در صورت نیاز برای استفاده در آینده)
         $this->product_id = $product->id;
         $this->save();
 
