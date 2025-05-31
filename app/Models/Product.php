@@ -38,10 +38,16 @@ class Product extends Model
         'short_desc',
         'description',
     ];
-
+    public function sales()
+    {
+        // حالت رایج: جدول sale_product به عنوان جدول میانی
+        return $this->belongsToMany(Sale::class, 'sale_product', 'product_id', 'sale_id')
+            ->withPivot(['quantity', 'unit_price', 'total_price']);
+    }
     public function category()
     {
-        return $this->belongsTo(Category::class);
+
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     public function brand()
