@@ -59,28 +59,16 @@ Route::get('/categories/list', [CategoryApiController::class, 'list']);
 
 
 
-// روت صفحه اصلی یا تست
-Route::get('/', function () {
-    return view('welcome');
+Route::middleware(['auth', 'verified'])->group(function () {
+    // دسته‌بندی‌ها (CRUD)
+    Route::resource('categories', CategoryController::class)->except(['show']);
+    // خروجی json برای نمایش درختی
+    Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.tree-data');
+    // سایر apiهای دسته‌بندی
+    Route::get('categories/list', [CategoryController::class, 'apiList']);
+    Route::get('/categories/person-search', [CategoryController::class, 'personSearch'])->name('categories.person-search');
+    Route::get('/api/categories', [CategoryController::class, 'apiList']);
 });
-
-// روت صفحه لیست دسته‌بندی‌ها (مثلاً نمایش jsTree)
-Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
-
-// روت خروجی json برای jsTree
-Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.tree-data');
-
-// روت ساخت دسته‌بندی جدید
-Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
-// روت ثبت دسته جدید
-Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
-// روت فرم ویرایش
-Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
-// روت ثبت ویرایش
-Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
-// روت حذف
-Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
-
 
 
 
@@ -277,9 +265,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Products and Categories
     Route::resource('products', ProductController::class);
     Route::post('/products/upload', [ProductController::class, 'upload'])->name('products.upload');
-    Route::resource('categories', CategoryController::class)->except(['show']);
+
     Route::get('categories/list', [CategoryController::class, 'apiList']);
-    Route::resource('categories', CategoryController::class);
+
 
     Route::get('/services/formbuilder', function () {
         return view('services.formbuilder');
