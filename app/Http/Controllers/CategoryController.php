@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    
     /**
      * نمایش صفحه لیست دسته‌بندی‌ها (درختی)
      */
@@ -22,56 +23,26 @@ class CategoryController extends Controller
      */
     public function treeData()
     {
-        // همه دسته‌ها را با محصولات و محصولات هر دسته را با فروش‌ها بیاوریم
-        $categories = Category::with(['products.sales', 'products'])->get();
+        $categories = Category::whereNull('parent_id')->with('childrenRecursive')->get();
 
-        // دسته‌های ریشه‌ای (parent_id = null)
-        $rootCategories = $categories->whereNull('parent_id');
-
-        // ساختار درختی بازگشتی
-        $buildTree = function ($cats) use ($categories, &$buildTree) {
-            return $cats->map(function ($cat) use ($categories, $buildTree) {
-                // جمع محصولات خود دسته و زیرمجموعه‌ها
-                $allProductIds = $this->getAllProductIds($cat, $categories);
-                $productCount = count($allProductIds);
-
-                // مجموع فروش (فرض: فیلد total_price در Sale)
-                $totalSales = Product::whereIn('id', $allProductIds)
-                    ->with('sales')
-                    ->get()
-                    ->flatMap->sales
-                    ->sum('total_price'); // اگر فیلد فروش متفاوت است اصلاح کن
-
-                // مجموع موجودی
-                $totalStock = Product::whereIn('id', $allProductIds)->sum('stock'); // اگر فیلد stock متفاوت است اصلاح کن
-
-                // نمایش آمار کنار نام دسته
-                $text = sprintf(
-                    '%s <span class="badge bg-primary ms-2">%d محصول</span> <span class="badge bg-success ms-2">%s فروش</span> <span class="badge bg-info">%d موجودی</span>',
-                    e($cat->name),
-                    $productCount,
-                    number_format($totalSales),
-                    $totalStock
-                );
-
-                // آرایه خروجی jsTree
+        $makeTree = function ($categories) use (&$makeTree) {
+            return $categories->map(function ($cat) use (&$makeTree) {
                 return [
                     'id' => $cat->id,
-                    'parent' => $cat->parent_id ?: '#',
-                    'text' => $text,
-                    'icon' => $cat->category_type === 'product' ? 'fa fa-box text-primary' :
-                              ($cat->category_type === 'service' ? 'fa fa-cogs text-success' : 'fa fa-user text-secondary'),
-                    'state' => ['opened' => $cat->parent_id ? false : true],
+                    'text' => e($cat->name),
                     'data' => [
                         'description' => $cat->description,
-                        'image' => $cat->image,
+                        'image' => $cat->image
                     ],
-                    'children' => $buildTree($categories->where('parent_id', $cat->id)),
+                    'children' => $makeTree($cat->childrenRecursive),
+                    // اگر می‌خواهی آیکون داشته باشی:
+                    'icon' => $cat->category_type === 'product' ? 'fa fa-box text-primary' :
+                              ($cat->category_type === 'service' ? 'fa fa-cogs text-success' : 'fa fa-user text-secondary'),
                 ];
-            })->values();
+            });
         };
 
-        return response()->json($buildTree($rootCategories));
+        return response()->json($makeTree($categories));
     }
 
     /**
@@ -86,6 +57,7 @@ class CategoryController extends Controller
         }
         return $ids;
     }
+
 
     /**
      * نمایش فرم ساخت دسته‌بندی جدید
