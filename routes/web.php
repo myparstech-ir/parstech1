@@ -52,7 +52,10 @@ Route::get('/categories/list', [CategoryApiController::class, 'list']);
 
 
 
+// روت داده‌های درختی دسته‌بندی‌ها برای jsTree
 
+// اگر auth داری و این صفحه فقط بعد از لاگین قابل نمایش است، این روت را داخل همان group بگذار
+Route::resource('categories', CategoryController::class);
 
 
 
