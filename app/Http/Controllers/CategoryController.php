@@ -7,14 +7,15 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    // لیست دسته‌بندی‌ها (صفحه درختی)
+    // نمایش صفحه لیست دسته‌بندی‌ها
     public function index()
     {
+        // برای سازگاری با jsTree نیاز به ارسال همه دسته‌ها نیست
         return view('categories.index');
     }
 
-    // داده‌های درختی برای jsTree
-    public function treeData(Request $request)
+    // خروجی درختی (json) برای jsTree
+    public function treeData()
     {
         $categories = Category::all();
 
@@ -28,7 +29,7 @@ class CategoryController extends Controller
                     ($cat->code ? " <span class='cat-code'>(".e($cat->code).")</span>" : '') .
                     ($cat->category_type ? " <span class='cat-type'>".e($cat->category_type)."</span>" : ''),
                 'icon' => $cat->category_type === 'product' ? 'fa fa-box' :
-                          ($cat->category_type === 'service' ? 'fa fa-cogs' : 'fa fa-user'),
+                        ($cat->category_type === 'service' ? 'fa fa-cogs' : 'fa fa-user'),
                 'state' => ['opened' => $cat->parent_id ? false : true],
                 'data' => [
                     'description' => $cat->description,
@@ -36,18 +37,25 @@ class CategoryController extends Controller
                 ]
             ];
         }
-
         return response()->json($tree);
     }
 
-    // فرم ساخت دسته جدید
     public function create()
     {
-        $categories = Category::all();
-        return view('categories.create', compact('categories'));
+        $personCategories = Category::where('category_type', 'person')->get();
+        $productCategories = Category::where('category_type', 'product')->get();
+        $serviceCategories = Category::where('category_type', 'service')->get();
+
+        $nextPersonCode = 'per' . (Category::where('category_type', 'person')->count() + 1001);
+        $nextProductCode = 'pro' . (Category::where('category_type', 'product')->count() + 1001);
+        $nextServiceCode = 'ser' . (Category::where('category_type', 'service')->count() + 1001);
+
+        return view('categories.create', compact(
+            'personCategories', 'productCategories', 'serviceCategories',
+            'nextPersonCode', 'nextProductCode', 'nextServiceCode'
+        ));
     }
 
-    // ذخیره دسته جدید
     public function store(Request $request)
     {
         $request->validate([
@@ -78,7 +86,6 @@ class CategoryController extends Controller
             ->with('success', 'دسته‌بندی با موفقیت ثبت شد.');
     }
 
-    // فرم ویرایش دسته
     public function edit($id)
     {
         $category = Category::findOrFail($id);
@@ -88,7 +95,6 @@ class CategoryController extends Controller
         return view('categories.edit', compact('category', 'categories'));
     }
 
-    // ذخیره ویرایش دسته
     public function update(Request $request, $id)
     {
         $category = Category::findOrFail($id);
@@ -108,13 +114,15 @@ class CategoryController extends Controller
         $category->update($data);
 
         return redirect()->route('categories.index')
-            ->with('success', 'دسته‌بندی با موفقیت ویرایش شد.');
+            ->with('success', 'دسته‌بندی با موفقیت بروزرسانی شد.');
     }
 
-    // حذف دسته
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
+        foreach ($category->children as $child) {
+            $child->delete();
+        }
         $category->delete();
         return redirect()->route('categories.index')
             ->with('success', 'دسته‌بندی با موفقیت حذف شد.');
