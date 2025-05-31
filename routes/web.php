@@ -59,15 +59,31 @@ Route::get('/categories/list', [CategoryApiController::class, 'list']);
 
 
 
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    // دسته‌بندی‌ها (CRUD)
+
+    // ---------------- دسته‌بندی‌ها ----------------
+    // روت نمایش لیست، ساخت، ویرایش، حذف و ... دسته‌بندی
     Route::resource('categories', CategoryController::class)->except(['show']);
-    // خروجی json برای نمایش درختی
+
+    // روت مخصوص داده‌های درختی برای jsTree و ajax
     Route::get('/categories/tree-data', [CategoryController::class, 'treeData'])->name('categories.tree-data');
-    // سایر apiهای دسته‌بندی
+
+    // روت‌های جستجوی ajax یا api دسته‌بندی‌ها (در صورت نیاز)
     Route::get('categories/list', [CategoryController::class, 'apiList']);
     Route::get('/categories/person-search', [CategoryController::class, 'personSearch'])->name('categories.person-search');
     Route::get('/api/categories', [CategoryController::class, 'apiList']);
+
+    // ---------------- محصولات ----------------
+    Route::resource('products', ProductController::class);
+    Route::post('/products/upload', [ProductController::class, 'upload'])->name('products.upload');
+
+    // ---------------- خدمات ----------------
+    Route::resource('services', ServiceController::class);
+    Route::get('/services/next-code', [ServiceController::class, 'nextCode']);
+
+    // ... سایر روت‌ها (مالی، فروش، پروفایل و غیره) ...
+    // اینجا همه گروه‌های دیگر را طبق نیاز پروژه‌ات قرار بده
 });
 
 
