@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    // نمایش صفحه لیست دسته‌بندی‌ها
+    // لیست دسته‌بندی‌ها
     public function index()
     {
-        // برای سازگاری با jsTree نیاز به ارسال همه دسته‌ها نیست
+        // برای سازگاری با jsTree ارسال دسته‌ها لازم نیست
         return view('categories.index');
     }
 
