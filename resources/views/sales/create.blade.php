@@ -5,31 +5,83 @@
     <link rel="stylesheet" href="{{ asset('css/persianDatepicker-melon.css') }}">
     <link rel="stylesheet" href="{{ asset('css/sales-invoice.css') }}">
     <link rel="stylesheet" href="{{ asset('css/sales-create.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
-        /* Quick Fixes - برای حفظ سازگاری با کدهای قبلی */
-        .form-switch .slider {
-            display: inline-block;
-            width: 38px;
-            height: 20px;
-            background: #eee;
+        /* بهبود ظاهر و مدرن‌سازی */
+        .sales-create-container {
+            background: linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
             border-radius: 20px;
-            position: relative;
-            transition: background 0.2s;
+            box-shadow: 0 4px 32px #0001;
+            padding: 34px 22px 10px 22px;
+            margin: 32px auto 20px auto;
+            max-width: 1200px;
         }
-        .form-switch input[type=checkbox] { display: none; }
-        .form-switch input[type=checkbox]:checked + .slider { background: var(--success-color); }
-        .form-switch .slider:before {
-            content: "";
-            position: absolute;
-            left: 3px;
-            top: 3px;
-            width: 14px;
-            height: 14px;
+        .sales-create-header {
+            background: linear-gradient(90deg,#2563eb 25%,#22d3ee 100%);
+            border-radius: 18px;
+            color: #fff;
+            padding: 18px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 3px 18px #0ea5e94d;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .sales-create-header h2 {
+            font-size: 2rem; font-weight: bold; margin: 0;
+        }
+        .invoice-section {
             background: #fff;
-            border-radius: 50%;
-            transition: 0.2s;
+            border-radius: 16px;
+            box-shadow: 0 1px 14px #0001;
+            padding: 20px 22px 12px 22px;
+            margin-bottom: 18px;
+            transition: box-shadow .2s;
         }
-        .form-switch input[type=checkbox]:checked + .slider:before { left: 21px; }
+        .form-label.required:after {content:" *";color:#ef4444;font-weight:bold;}
+        .grand-total { font-size: 1.7rem; color: #0ea5e9; font-weight: bold; }
+        .selected-products-table thead th {
+            background: #e0f2fe;
+            color: #1e293b;
+        }
+        .selected-products-table tbody tr {
+            transition: background .17s;
+        }
+        .selected-products-table tbody tr:hover {
+            background: #f1f5f9;
+        }
+        .remove-btn { color: #ef4444; font-size: 1.7rem; cursor: pointer; }
+        .invoice-totals {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            font-size: 1.15rem;
+        }
+        .total-label { color: #64748b; }
+        .total-value { color: #0ea5e9; font-weight: bold; }
+        .product-search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            position: absolute;
+            z-index: 10;
+            width: 100%;
+            left: 0; right: 0;
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #bae6fd;
+            box-shadow: 0 5px 18px #0ea5e94d;
+        }
+        .product-item {
+            cursor: pointer;
+            padding: 10px 18px;
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .product-item:last-child { border-bottom: none; }
+        .product-item:hover { background: #f0fdfa; }
+        .animate-fade-in {animation: fadeIn .7s;}
+        @keyframes fadeIn {from{opacity:0;transform:translateY(40px);} to{opacity:1;transform:none;}}
     </style>
 @endsection
 
@@ -40,10 +92,26 @@
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success animate-fade-in">{{ session('success') }}</div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({icon: 'success', title: 'موفقیت', text: '{{ session("success") }}', timer: 3000, showConfirmButton: false});
+            });
+        </script>
+        <div class="alert alert-success animate-fade-in d-none">{{ session('success') }}</div>
     @endif
+
     @if($errors->any())
-        <div class="alert alert-danger animate-fade-in">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطا',
+                    html: `{!! implode('<br>', $errors->all()) !!}`,
+                    confirmButtonText: 'بستن'
+                });
+            });
+        </script>
+        <div class="alert alert-danger animate-fade-in d-none">
             <ul class="mb-0">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -55,7 +123,7 @@
     <form id="sales-invoice-form" class="animate-fade-in" autocomplete="off" method="POST" action="{{ route('sales.store') }}">
         @csrf
 
-        <!-- بخش اول: اطلاعات اولیه فاکتور -->
+        <!-- اطلاعات اولیه فاکتور -->
         <div class="invoice-section">
             <div class="row g-3">
                 <div class="col-md-2">
@@ -73,7 +141,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col-md-2">
                     <div class="form-group">
                         <label class="form-label">شماره ارجاع</label>
@@ -81,20 +148,16 @@
                                value="{{ old('reference') }}" placeholder="شماره ارجاع...">
                     </div>
                 </div>
-
                 <div class="col-md-3">
                     <div class="form-group">
                         <label class="form-label required">تاریخ صدور</label>
                         <div class="input-group">
                             <input type="text" class="form-control" name="issued_at_jalali" id="issued_at_jalali"
                                    value="{{ old('issued_at_jalali') }}" readonly>
-                            <span class="input-group-text">
-                                <i class="fa fa-calendar"></i>
-                            </span>
+                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-md-2">
                     <div class="form-group">
                         <label class="form-label required">واحد پول</label>
@@ -111,11 +174,11 @@
             </div>
         </div>
 
-        <!-- بخش دوم: اطلاعات مشتری و فروشنده -->
+        <!-- اطلاعات مشتری و فروشنده -->
         <div class="invoice-section mt-4">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group position-relative">
                         <label class="form-label required">مشتری</label>
                         <div class="input-group">
                             <input type="text" class="form-control" id="customer_search"
@@ -128,7 +191,6 @@
                         <div id="customer-search-results" class="dropdown-menu w-100"></div>
                     </div>
                 </div>
-
                 <div class="col-md-3">
                     <div class="form-group">
                         <label class="form-label">عنوان فاکتور</label>
@@ -136,7 +198,6 @@
                                placeholder="عنوان فاکتور..." value="{{ old('title') }}">
                     </div>
                 </div>
-
                 <div class="col-md-3">
                     <div class="form-group">
                         <label class="form-label required">فروشنده</label>
@@ -153,19 +214,19 @@
             </div>
         </div>
 
-        <!-- بخش سوم: محصولات و خدمات -->
+        <!-- محصولات و خدمات -->
         <div class="invoice-section mt-4">
             @include('sales.partials.product_list')
         </div>
 
-        <!-- بخش چهارم: جدول اقلام فاکتور -->
+        <!-- جدول اقلام فاکتور -->
         <div class="invoice-section mt-4">
             @include('sales.partials.invoice_items_table')
         </div>
 
         <input type="hidden" name="products_input" id="products_input" value="{{ old('products_input') }}">
 
-        <!-- بخش پنجم: جمع کل و دکمه ثبت -->
+        <!-- جمع کل و دکمه ثبت -->
         <div class="invoice-footer mt-4">
             <div class="row align-items-center">
                 <div class="col-md-9">
@@ -212,6 +273,31 @@
             $('#issued_at_jalali').val(miladi);
         }
         $('#issued_at_jalali').prop('readonly', true).css('background', '#eee').css('cursor', 'not-allowed');
+
+        // نمونه ایجکس جستجوی مشتری (اگر در js اصلیت نیست)
+        $('#customer_search').on('input', function() {
+            let val = $(this).val();
+            if(val.length < 2) { $('#customer-search-results').hide(); return; }
+            $.get('/customers/ajax-list', {q: val, limit: 10}, function(data) {
+                let html = '';
+                if(data.length) {
+                    data.forEach(function(c) {
+                        html += `<div class="dropdown-item" data-id="${c.id}">${c.first_name} ${c.last_name} <small class="text-muted">${c.mobile}</small></div>`;
+                    });
+                    $('#customer-search-results').html(html).show();
+                } else {
+                    $('#customer-search-results').hide();
+                }
+            });
+        });
+        $(document).on('click', '#customer-search-results .dropdown-item', function() {
+            $('#customer_id').val($(this).data('id'));
+            $('#customer_search').val($(this).text());
+            $('#customer-search-results').hide();
+        });
+        $(document).on('click', function(e) {
+            if(!$(e.target).closest('#customer_search').length) $('#customer-search-results').hide();
+        });
     });
     </script>
 @endsection
