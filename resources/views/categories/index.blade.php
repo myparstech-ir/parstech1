@@ -488,62 +488,71 @@ body {
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Cache DOM elements
-    const treeToggles = document.querySelectorAll('.tree-toggle');
+    // اضافه کردن قابلیت کلیک به کل کارت
+    document.querySelectorAll('.cat-tree-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // اگر روی دکمه‌های عملیات کلیک شده، اجازه بده عملکرد پیش‌فرض انجام بشه
+            if (e.target.closest('.cat-actions')) {
+                return;
+            }
 
-    // Add event listeners
-    treeToggles.forEach(toggle => {
-        toggle.addEventListener('click', handleToggle);
-        toggle.addEventListener('keydown', handleKeyDown);
+            // پیدا کردن دکمه toggle و شبیه‌سازی کلیک روی اون
+            const toggle = this.querySelector('.cat-tree-toggle');
+            if (toggle) {
+                toggle.click();
+            }
+
+            // جلوگیری از انتشار رویداد به والد
+            e.stopPropagation();
+        });
     });
 
-    // Toggle handler
-    function handleToggle(e) {
-        const toggle = e.currentTarget;
-        const expanded = toggle.getAttribute('aria-expanded') === 'true';
-        const treeItem = toggle.closest('.tree-item');
-        const subcategories = treeItem.querySelector('.subcategories');
-
-        // Toggle expanded state
-        toggle.setAttribute('aria-expanded', !expanded);
-
-        // Toggle subcategories
-        if (expanded) {
-            subcategories.classList.remove('show');
-            // Also collapse any expanded children
-            const childToggles = subcategories.querySelectorAll('.tree-toggle[aria-expanded="true"]');
-            childToggles.forEach(childToggle => childToggle.click());
-        } else {
-            subcategories.classList.add('show');
-        }
-    }
-
-    // Keyboard handler
-    function handleKeyDown(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.target.click();
-        }
-    }
-});
-document.addEventListener('DOMContentLoaded', function() {
-    // دکمه باز/بستن زیردسته‌ها
+    // مدیریت دکمه‌های toggle
     document.querySelectorAll('.cat-tree-toggle').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
+
+            // تغییر وضعیت expanded
             let expanded = btn.getAttribute('aria-expanded') === 'true';
             btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-            // عنصر زیردسته (cat-tree-children) را پیدا کن
-            let parent = btn.closest('.cat-tree-row');
-            if(parent){
-                let child = parent.querySelector('.cat-tree-children');
-                if(child){
-                    if(expanded) {
-                        child.style.display = 'none';
+
+            // پیدا کردن زیردسته‌ها
+            let parent = btn.closest('.cat-tree-item');
+            if (parent) {
+                let children = parent.querySelector('.cat-tree-children');
+                if (children) {
+                    // تغییر نمایش با انیمیشن
+                    if (expanded) {
+                        children.style.opacity = '0';
+                        children.style.transform = 'translateY(-10px)';
+                        setTimeout(() => {
+                            children.style.display = 'none';
+                        }, 300);
                     } else {
-                        child.style.display = '';
+                        children.style.display = '';
+                        requestAnimationFrame(() => {
+                            children.style.opacity = '1';
+                            children.style.transform = 'none';
+                        });
+                    }
+
+                    // اگر در حال بستن هستیم، همه زیرشاخه‌های باز را هم ببند
+                    if (expanded) {
+                        const openToggles = children.querySelectorAll('.cat-tree-toggle[aria-expanded="true"]');
+                        openToggles.forEach(toggle => toggle.click());
                     }
                 }
+            }
+        });
+    });
+
+    // پشتیبانی از کیبورد
+    document.querySelectorAll('.cat-tree-card').forEach(card => {
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.click();
             }
         });
     });
