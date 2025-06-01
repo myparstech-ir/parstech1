@@ -15,8 +15,8 @@ class PersonController extends Controller
     public function nextCode()
     {
         // فقط کدهایی که با persons=- شروع می‌شوند را درنظر بگیر
-        $lastPerson = Person::where('accounting_code', 'like', 'persons=%')
-            ->orderByRaw('CAST(SUBSTRING(accounting_code, 9) AS UNSIGNED) DESC')
+        $lastPerson = Person::where('accounting_code', 'like', 'persons=-%')
+            ->orderByRaw('CAST(SUBSTRING(accounting_code, 10) AS UNSIGNED) DESC')
             ->first();
 
         if ($lastPerson && preg_match('/^persons=-(\d+)$/', $lastPerson->accounting_code, $matches)) {
@@ -36,10 +36,9 @@ class PersonController extends Controller
     public function create()
     {
         $provinces = Province::all();
-        // کد پیش‌فرض برای فرم (برای نمایش اولیه)
-        // فقط کدهایی که با persons=- شروع می‌شوند را درنظر بگیر
-        $lastPerson = Person::where('accounting_code', 'like', 'persons=%')
-            ->orderByRaw('CAST(SUBSTRING(accounting_code, 9) AS UNSIGNED) DESC')
+        // تولید کد پیش‌فرض فقط با persons=-
+        $lastPerson = Person::where('accounting_code', 'like', 'persons=-%')
+            ->orderByRaw('CAST(SUBSTRING(accounting_code, 10) AS UNSIGNED) DESC')
             ->first();
 
         if ($lastPerson && preg_match('/^persons=-(\d+)$/', $lastPerson->accounting_code, $matches)) {
@@ -54,7 +53,6 @@ class PersonController extends Controller
 
     public function store(Request $request)
     {
-
         \Log::info('DATE_INPUTS', [
             'birth_date' => $request->birth_date,
             'marriage_date' => $request->marriage_date,
@@ -107,10 +105,13 @@ class PersonController extends Controller
         try {
             DB::beginTransaction();
 
-            // اگر کد خودکار فعال است و کاربر دستی کد نداده، دوباره از دیتابیس بگیر تا تداخل ایجاد نشود
-            if ($request->input('auto_code', '1') === '1') {
-                $lastPerson = Person::where('accounting_code', 'like', 'persons=%')
-                    ->orderByRaw('CAST(SUBSTRING(accounting_code, 9) AS UNSIGNED) DESC')
+            // اگر کد خودکار فعال است یا کد تکراری باشد، مقدار جدید تولید کن
+            $needAutoCode = $request->input('auto_code', '1') === '1'
+                || Person::where('accounting_code', $validated['accounting_code'])->exists();
+
+            if ($needAutoCode) {
+                $lastPerson = Person::where('accounting_code', 'like', 'persons=-%')
+                    ->orderByRaw('CAST(SUBSTRING(accounting_code, 10) AS UNSIGNED) DESC')
                     ->first();
 
                 if ($lastPerson && preg_match('/^persons=-(\d+)$/', $lastPerson->accounting_code, $matches)) {
@@ -120,7 +121,6 @@ class PersonController extends Controller
                 }
                 $validated['accounting_code'] = 'persons=-' . $nextNumber;
             }
-            // اگر کاربر دستی کد داده همان مقدار ذخیره شود
 
             $person = Person::create(array_merge(
                 $validated,
@@ -176,6 +176,7 @@ class PersonController extends Controller
 
         return view('persons.show', compact('person', 'purchases', 'totalAmount'));
     }
+
     public function updatePercent(Person $person, Request $request)
     {
         $request->validate([
@@ -185,21 +186,4 @@ class PersonController extends Controller
         $person->save();
         return redirect()->route('persons.show', $person)->with('success', 'درصد با موفقیت ذخیره شد.');
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

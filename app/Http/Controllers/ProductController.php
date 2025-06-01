@@ -7,7 +7,6 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Unit;
-use App\Models\Service;
 use App\Models\Person;
 
 class ProductController extends Controller
@@ -21,8 +20,8 @@ class ProductController extends Controller
             }
             return $input;
         }
-        $faNums = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹','٫'];
-        $enNums = ['0','1','2','3','4','5','6','7','8','9','.'];
+        $faNums = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹','٫','٬','٫','٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        $enNums = ['0','1','2','3','4','5','6','7','8','9','.','','.','0','1','2','3','4','5','6','7','8','9'];
         return str_replace($faNums, $enNums, $input);
     }
 
@@ -110,7 +109,7 @@ class ProductController extends Controller
         ];
         $input = $request->all();
         $this->normalizeNumbers($input, $fieldsToConvert);
-        // همچنین درصد سهامداران را نیز اصلاح کن اگر ارسالی باشد:
+
         if (isset($input['shareholder_percents'])) {
             $input['shareholder_percents'] = $this->faToEnNumber($input['shareholder_percents']);
         }
@@ -328,11 +327,69 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route('products.index')->with('success', 'محصول با موفقیت حذف شد.');
     }
-        public function show(Product $product)
+
+    public function show(Product $product)
     {
         // اگر جدول category یا brand وابسته است، eager load کن:
         $product->load(['category', 'brand']);
 
         return view('products.show', compact('product'));
+    }
+
+    // --- این متد برای پشتیبانی AJAX لیست محصولات ---
+    public function ajaxList(Request $request)
+    {
+        $query = Product::with('category')->where('is_active', 1);
+
+        if ($request->has('q') && $request->q) {
+            $q = $request->q;
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%$q%")
+                    ->orWhere('code', 'like', "%$q%");
+            });
+        }
+
+        $limit = intval($request->get('limit', 10));
+        $products = $query->limit($limit)->get();
+
+        $results = $products->map(function ($product) {
+            return [
+                'id'         => $product->id,
+                'code'       => $product->code,
+                'name'       => $product->name,
+                'category'   => $product->category ? $product->category->name : '-',
+                'unit'       => $product->unit,
+                'sell_price' => $product->sell_price,
+                'description'=> $product->short_desc ?? $product->description,
+                'stock'      => $product->stock,
+            ];
+        });
+
+        return response()->json($results);
+    }
+
+    // --- متد itemInfo برای دریافت جزییات محصول (استفاده در فاکتور فروش) ---
+    public function itemInfo(Request $request)
+    {
+        $id = $request->get('id');
+        $type = $request->get('type');
+        if ($type === 'product') {
+            $product = Product::with('category')->find($id);
+            if (!$product) {
+                return response()->json(['error' => 'محصول یافت نشد.'], 404);
+            }
+            return response()->json([
+                'id' => $product->id,
+                'code' => $product->code,
+                'name' => $product->name,
+                'category' => $product->category ? $product->category->name : '-',
+                'unit' => $product->unit,
+                'sell_price' => $product->sell_price,
+                'description' => $product->short_desc ?? $product->description,
+                'stock' => $product->stock,
+            ]);
+        }
+        // اگر نوع service باشد باید به ServiceController ارجاع داده شود
+        return response()->json(['error' => 'نوع آیتم نامعتبر است.'], 400);
     }
 }

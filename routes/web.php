@@ -38,7 +38,7 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
 // بخش های غیر از دسته بندی بدون تغییر -------------------------------
-
+Route::resource('persons', PersonController::class);
 Route::get('/categories/list', [CategoryApiController::class, 'list']);
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/products/ajax-list', [ProductController::class, 'ajaxList']);
