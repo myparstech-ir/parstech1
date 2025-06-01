@@ -15,22 +15,28 @@ body {
 :root {
     --primary: #2776d1;
     --primary-light: #eaf5ff;
-    --primary-lighter: #f3f8ff;
-    --primary-dark: #1e5aa0;
     --success: #1cb08e;
     --success-light: #d4f1e4;
     --warning: #c97e10;
     --warning-light: #ffe9c7;
     --danger: #dc3545;
     --danger-light: #ffeaea;
-    --border-color: #e0e8fa;
+    --gray-100: #f3f8ff;
+    --gray-200: #e0e8fa;
+    --gray-300: #94a3b8;
+    --gray-400: #64748b;
+    --gray-500: #475569;
+    --gray-600: #1e293b;
+
     --shadow-sm: 0 2px 4px rgba(39, 118, 209, 0.1);
     --shadow-md: 0 4px 6px rgba(39, 118, 209, 0.15);
     --shadow-lg: 0 8px 24px rgba(39, 118, 209, 0.15);
+
     --radius-sm: 6px;
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
+
     --transition: all 0.3s ease;
 }
 
@@ -100,13 +106,13 @@ body {
     list-style: none;
     padding: 0;
     margin: 0;
-    position: relative;
 }
 
+/* Tree Item */
 .tree-item {
     position: relative;
-    padding-right: 2rem;
-    margin-bottom: 0.5rem;
+    padding-right: 2.5rem;
+    margin-bottom: 1rem;
 }
 
 /* Tree Lines */
@@ -117,7 +123,7 @@ body {
     right: 0;
     width: 2px;
     height: 100%;
-    background: var(--border-color);
+    background: var(--gray-200);
 }
 
 .tree-item:last-child::before {
@@ -127,17 +133,17 @@ body {
 .tree-item::after {
     content: '';
     position: absolute;
-    top: 50%;
+    top: 25px;
     right: 0;
-    width: 1.5rem;
+    width: 2rem;
     height: 2px;
-    background: var(--border-color);
+    background: var(--gray-200);
 }
 
 /* Category Card */
 .category-card {
     background: white;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--gray-200);
     border-radius: var(--radius-lg);
     padding: 1rem;
     display: flex;
@@ -148,7 +154,6 @@ body {
 }
 
 .category-card:hover {
-    background: var(--primary-lighter);
     border-color: var(--primary);
     box-shadow: var(--shadow-md);
 }
@@ -159,14 +164,12 @@ body {
     height: 48px;
     border-radius: var(--radius-md);
     object-fit: cover;
-    border: 2px solid var(--border-color);
-    background: var(--primary-light);
+    border: 2px solid var(--gray-200);
     transition: var(--transition);
 }
 
 .category-card:hover .category-image {
     border-color: var(--primary);
-    transform: scale(1.05);
 }
 
 /* Category Info */
@@ -176,10 +179,10 @@ body {
 }
 
 .category-name {
-    font-weight: 700;
-    color: var(--primary-dark);
-    margin: 0 0 0.25rem;
     font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin: 0 0 0.5rem;
 }
 
 .category-meta {
@@ -189,19 +192,15 @@ body {
     flex-wrap: wrap;
 }
 
-/* Category Type Badge */
+/* Category Types */
 .category-type {
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.9rem;
-    font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-}
-
-.category-type i {
-    font-size: 0.9em;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .type-product {
@@ -222,7 +221,8 @@ body {
 /* Category Code */
 .category-code {
     font-family: monospace;
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--gray-100);
+    color: var(--gray-500);
     padding: 0.25rem 0.5rem;
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
@@ -230,26 +230,26 @@ body {
 
 /* Category Description */
 .category-desc {
-    color: #666;
+    color: var(--gray-400);
     font-size: 0.95rem;
     margin: 0;
+    max-width: 300px;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 300px;
 }
 
 /* Products Count */
 .products-count {
-    background: var(--primary-light);
-    color: var(--primary);
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    font-size: 0.9rem;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 /* Action Buttons */
@@ -259,15 +259,15 @@ body {
 }
 
 .btn-action {
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-md);
-    font-size: 0.95rem;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
     transition: var(--transition);
 }
 
@@ -291,32 +291,17 @@ body {
     color: white;
 }
 
-/* Success Alert */
-.alert {
-    padding: 1rem;
-    border-radius: var(--radius-lg);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.alert-success {
-    background: var(--success-light);
-    color: var(--success);
-}
-
-/* Subcategories Toggle */
-.subcategories-toggle {
+/* Toggle Button */
+.tree-toggle {
     position: absolute;
-    right: -1.75rem;
-    top: 50%;
+    right: -1.25rem;
+    top: 25px;
     transform: translateY(-50%);
     width: 24px;
     height: 24px;
     border-radius: 50%;
     background: white;
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--gray-200);
     color: var(--primary);
     display: flex;
     align-items: center;
@@ -326,26 +311,25 @@ body {
     z-index: 2;
 }
 
-.subcategories-toggle:hover {
+.tree-toggle:hover {
     background: var(--primary);
     border-color: var(--primary);
     color: white;
 }
 
-.subcategories-toggle i {
+.tree-toggle i {
     font-size: 0.8rem;
     transition: transform 0.3s ease;
 }
 
-.subcategories-toggle[aria-expanded="true"] i {
+.tree-toggle[aria-expanded="true"] i {
     transform: rotate(90deg);
 }
 
-/* Subcategories List */
+/* Subcategories */
 .subcategories {
-    margin-top: 1rem;
-    margin-right: 1rem;
     display: none;
+    margin-top: 1rem;
 }
 
 .subcategories.show {
@@ -364,11 +348,26 @@ body {
     }
 }
 
+/* Alert */
+.alert {
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.alert-success {
+    background: var(--success-light);
+    color: var(--success);
+}
+
 /* Empty State */
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
-    color: #666;
+    color: var(--gray-400);
 }
 
 .empty-state i {
@@ -421,6 +420,7 @@ body {
 @media (max-width: 576px) {
     .categories-wrapper {
         margin: 1rem auto;
+        padding: 0 0.5rem;
     }
 
     .tree-container {
@@ -469,7 +469,10 @@ body {
         @if(count($categories) > 0)
             <ul class="tree-list">
                 @foreach($categories as $category)
-                    @include('categories.partials.tree-item', ['category' => $category])
+                    @include('categories.partials.tree-item', [
+                        'category' => $category,
+                        'level' => 0
+                    ])
                 @endforeach
             </ul>
         @else
@@ -486,60 +489,42 @@ body {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Cache DOM elements
-    const toggleButtons = document.querySelectorAll('.subcategories-toggle');
+    const treeToggles = document.querySelectorAll('.tree-toggle');
 
-    // Add event listeners to all toggle buttons
-    toggleButtons.forEach(btn => {
-        btn.addEventListener('click', handleToggle);
-        btn.addEventListener('keydown', handleKeyDown);
+    // Add event listeners
+    treeToggles.forEach(toggle => {
+        toggle.addEventListener('click', handleToggle);
+        toggle.addEventListener('keydown', handleKeyDown);
     });
 
-    // Toggle subcategories
+    // Toggle handler
     function handleToggle(e) {
-        const btn = e.currentTarget;
-        const expanded = btn.getAttribute('aria-expanded') === 'true';
-        const subcategories = btn.closest('.tree-item')
-                               .querySelector('.subcategories');
+        const toggle = e.currentTarget;
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        const treeItem = toggle.closest('.tree-item');
+        const subcategories = treeItem.querySelector('.subcategories');
 
-        // Toggle aria-expanded
-        btn.setAttribute('aria-expanded', !expanded);
+        // Toggle expanded state
+        toggle.setAttribute('aria-expanded', !expanded);
 
-        // Toggle subcategories visibility
+        // Toggle subcategories
         if (expanded) {
             subcategories.classList.remove('show');
             // Also collapse any expanded children
-            const childToggles = subcategories.querySelectorAll('.subcategories-toggle[aria-expanded="true"]');
-            childToggles.forEach(toggle => toggle.click());
+            const childToggles = subcategories.querySelectorAll('.tree-toggle[aria-expanded="true"]');
+            childToggles.forEach(childToggle => childToggle.click());
         } else {
             subcategories.classList.add('show');
         }
     }
 
-    // Handle keyboard navigation
+    // Keyboard handler
     function handleKeyDown(e) {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             e.target.click();
         }
     }
-
-    // Optional: Add hover effect to parent when child is hovered
-    const treeItems = document.querySelectorAll('.tree-item');
-    treeItems.forEach(item => {
-        item.addEventListener('mouseenter', () => {
-            const parent = item.closest('ul').closest('.tree-item');
-            if (parent) {
-                parent.classList.add('child-hovered');
-            }
-        });
-
-        item.addEventListener('mouseleave', () => {
-            const parent = item.closest('ul').closest('.tree-item');
-            if (parent) {
-                parent.classList.remove('child-hovered');
-            }
-        });
-    });
 });
 </script>
 @endsection
