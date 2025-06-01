@@ -1,542 +1,1340 @@
 @extends('layouts.app')
 
-@section('title', 'لیست دسته‌بندی‌ها (جدولی درختی پیشرفته)')
+@section('title', 'لیست دسته‌بندی‌ها (جدولی درختی)')
 
 @section('styles')
-{{-- استایل حرفه‌ای و مفصل برای نمایش درختی، drag & drop، breadcrumb و ... --}}
 <style>
-/* == RESET & BASE == */
-body { background: #f6fbfe; font-family: IRANSans, Vazirmatn, Tahoma, sans-serif; }
-* { box-sizing: border-box; }
-a { text-decoration: none; color: inherit; }
-button, input, select { font-family: inherit; }
-ul, ol { padding-right: 0; margin-bottom: 0; }
+    /* CSS Variables & Base Styles */
+    :root {
+        /* Primary Colors */
+        --primary-50: #eff6ff;
+        --primary-100: #dbeafe;
+        --primary-200: #bfdbfe;
+        --primary-300: #93c5fd;
+        --primary-400: #60a5fa;
+        --primary-500: #2776d1;
+        --primary-600: #2563eb;
+        --primary-700: #1d4ed8;
+        --primary-800: #1e40af;
+        --primary-900: #1e3a8a;
 
-:root {
-  --tree-bg: #fff;
-  --tree-border: #e2e6ee;
-  --tree-shadow: 0 4px 32px #2776d11c;
-  --tree-radius: 22px;
-  --tree-primary: #2776d1;
-  --tree-secondary: #eaf5ff;
-  --tree-success: #1cb08e;
-  --tree-warning: #c97e10;
-  --tree-danger: #ff3860;
-  --tree-gray: #eef3fa;
-  --tree-text: #212529;
-  --tree-muted: #888;
-}
+        /* Success Colors */
+        --success-50: #f0fdf4;
+        --success-100: #dcfce7;
+        --success-200: #bbf7d0;
+        --success-300: #86efac;
+        --success-400: #4ade80;
+        --success-500: #1cb08e;
+        --success-600: #16a34a;
+        --success-700: #15803d;
+        --success-800: #166534;
+        --success-900: #14532d;
 
-.category-tree-container {
-  background: var(--tree-bg);
-  border: 1px solid var(--tree-border);
-  border-radius: var(--tree-radius);
-  box-shadow: var(--tree-shadow);
-  padding: 36px 32px 32px 32px;
-  margin-bottom: 32px;
-  transition: box-shadow .18s;
-  position: relative;
-}
+        /* Warning Colors */
+        --warning-50: #fffbeb;
+        --warning-100: #fef3c7;
+        --warning-200: #fde68a;
+        --warning-300: #fcd34d;
+        --warning-400: #fbbf24;
+        --warning-500: #c97e10;
+        --warning-600: #d97706;
+        --warning-700: #b45309;
+        --warning-800: #92400e;
+        --warning-900: #78350f;
 
-@media (max-width: 700px) {
-  .category-tree-container { padding: 15px 3vw 14px 3vw; }
-}
+        /* Danger Colors */
+        --danger-50: #fef2f2;
+        --danger-100: #fee2e2;
+        --danger-200: #fecaca;
+        --danger-300: #fca5a5;
+        --danger-400: #f87171;
+        --danger-500: #ef4444;
+        --danger-600: #dc2626;
+        --danger-700: #b91c1c;
+        --danger-800: #991b1b;
+        --danger-900: #7f1d1d;
 
-/* == BREADCRUMB == */
-.cat-breadcrumb {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  font-size: 1rem;
-  background: var(--tree-gray);
-  border-radius: 9px;
-  padding: 10px 18px 8px 18px;
-  box-shadow: 0 1px 4px #2776d118;
-  font-weight: 600;
-  direction: rtl;
-}
-.cat-breadcrumb li {
-  display: flex; align-items: center;
-}
-.cat-breadcrumb li:not(:last-child):after {
-  content: "›";
-  margin: 0 8px;
-  color: var(--tree-primary);
-  font-size: 1.09em;
-  opacity: 0.65;
-}
+        /* Gray Colors */
+        --gray-50: #f9fafb;
+        --gray-100: #f7fafd;
+        --gray-200: #e2e6ee;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
 
-/* == SEARCH & FILTER == */
-.cat-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 22px;
-  flex-wrap: wrap;
-}
-.cat-search-box {
-  position: relative;
-}
-.cat-search-box input {
-  padding: 8px 34px 8px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--tree-border);
-  background: #fafdff;
-  font-size: 1em;
-  min-width: 210px;
-  transition: border .16s;
-  outline: none;
-  direction: rtl;
-}
-.cat-search-box input:focus { border-color: var(--tree-primary);}
-.cat-search-box .fa-search {
-  position: absolute; right: 9px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--tree-primary); font-size: 1.03em;
-  opacity: 0.77;
-}
-.cat-toolbar .cat-filter {
-  border-radius: 7px;
-  border: 1px solid var(--tree-border);
-  background: #fafdff;
-  color: #2776d1;
-  padding: 5px 16px;
-  font-size: 0.97em;
-  font-weight: 600;
-  cursor: pointer;
-}
-.cat-toolbar .cat-filter:hover { background: var(--tree-primary); color: #fff; border-color: var(--tree-primary); }
+        /* Shadows */
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
 
-/* == TREE STRUCTURE == */
-.cat-tree {
-  margin: 0; padding: 0;
-  list-style: none;
-  direction: rtl;
-}
-.cat-tree li {
-  position: relative;
-  padding-right: 18px;
-  margin-bottom: 1px;
-  transition: background .19s;
-  border-radius: 9px;
-  min-height: 54px;
-}
-.cat-tree li.selected { background: #eaf5ff; }
-.cat-tree li.drag-over { background: #d3e9fa !important; }
-.cat-tree .cat-tree-row {
-  display: flex; align-items: center; gap: 8px; padding: 7px 0;
-  cursor: pointer;
-  user-select: none;
-  border-radius: 10px;
-  transition: background .19s;
-}
-.cat-tree .cat-tree-row:hover { background: #f3f7ff; }
+        /* Border Radius */
+        --radius-none: 0;
+        --radius-sm: 0.125rem;
+        --radius-default: 0.25rem;
+        --radius-md: 0.375rem;
+        --radius-lg: 0.5rem;
+        --radius-xl: 0.75rem;
+        --radius-2xl: 1rem;
+        --radius-3xl: 1.5rem;
+        --radius-full: 9999px;
 
-.cat-tree-expander {
-  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-  border: none; background: none; outline: none; cursor: pointer; font-size: 1.2em; color: var(--tree-primary);
-  transition: background .14s, color .16s, transform .2s;
-  border-radius: 6px;
-}
-.cat-tree-expander:active { background: #eaf5ff; }
-.cat-tree-expander .fa-caret-left { transition: transform .25s;}
-.cat-tree-expander[aria-expanded="true"] .fa-caret-left { transform: rotate(-90deg);}
-.cat-tree-expander[hidden] { display:none;}
+        /* Transitions */
+        --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-colors: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-opacity: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-shadow: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-transform: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-.cat-tree-title {
-  font-size: 1.06em; font-weight: 700; color: var(--tree-text); margin-left: 2px;
-  max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.cat-tree-img {
-  width: 38px; height: 38px; object-fit: cover; border-radius: 7px;
-  border: 1px solid #e0e8fa; box-shadow: 0 1px 8px #2776d133; background: #eaf6ff; margin-left: 7px;
-}
-.cat-tree-badge {
-  display: inline-block; padding: 2px 10px; font-size: 0.98em; border-radius: 7px;
-  background: #eef3fa; color: #2769c7; margin-left: 3px; font-weight: bold;
-}
-.cat-tree-type {
-  font-weight: bold; margin-left: 2px;
-}
-.cat-tree-type.product { color: var(--tree-success);}
-.cat-tree-type.service { color: var(--tree-primary);}
-.cat-tree-type.person { color: var(--tree-warning);}
-.cat-tree-desc {
-  color: var(--tree-muted); font-size: 0.99em; max-width: 320px; white-space: pre-line; margin-left: 5px;
-}
-.cat-tree-count {
-  background: #d4f1e4; color: #1cb08e; border-radius: 6px; padding: 1.5px 8px; font-weight: 600; font-size: .96em; margin-left: 2px;
-}
-.cat-tree-code {
-  color: #2a6cc5; background: #e2eafe; border-radius: 5px; padding: 1.5px 7px; margin-left: 2px; font-size: .94em; font-weight: 500;
-}
-.cat-tree-actions {
-  margin-right: auto; display: flex; gap: 5px; align-items: center;
-}
-.cat-tree-action-btn {
-  border: none; outline: none; background: #f7fafd; color: #2776d1;
-  border-radius: 7px; padding: 7px 13px; font-size: 1em; font-weight: bold; cursor: pointer;
-  transition: background .17s, color .16s;
-  display: flex; align-items: center;
-}
-.cat-tree-action-btn:hover { background: #2776d1; color: #fff;}
-.cat-tree-action-btn.danger { background: #ffeaea; color: #d12a2a; }
-.cat-tree-action-btn.danger:hover { background: #d12a2a; color: #fff; }
-.cat-tree-action-btn.secondary { background: #f4f7fa; color: #666; }
-.cat-tree-action-btn.secondary:hover { background: #eaf5ff; color: #2776d1; }
-.cat-tree-contextmenu {
-  position: absolute; z-index: 9999;
-  min-width: 148px;
-  background: #fff; border: 1px solid #cfd9e6; border-radius: 8px;
-  box-shadow: 0 4px 24px #2776d12a;
-  display: none; flex-direction: column;
-}
-.cat-tree-contextmenu button {
-  border: none; background: none; color: #333; font-size: 1em;
-  padding: 8px 18px; text-align: right; cursor: pointer; border-radius: 6px;
-  transition: background .13s, color .12s;
-}
-.cat-tree-contextmenu button:hover { background: #eaf5ff; color: #2776d1;}
-.cat-tree-contextmenu .danger { color: #d12a2a;}
-.cat-tree-contextmenu .danger:hover { background: #ffeaea; color: #b20d0d;}
+        /* Animation Timing */
+        --duration-75: 75ms;
+        --duration-100: 100ms;
+        --duration-150: 150ms;
+        --duration-200: 200ms;
+        --duration-300: 300ms;
+        --duration-500: 500ms;
+        --duration-700: 700ms;
+        --duration-1000: 1000ms;
+    }
 
-/* == TREE INDENT & LINES == */
-.cat-tree-indent {
-  display: inline-block; width: 22px; height: 1px; vertical-align: middle;
-}
-.cat-tree li { padding-right: calc(18px + var(--level,0) * 32px); }
-.cat-tree li:before {
-  content: "";
-  position: absolute; right: 6px; top: 0; bottom: 0; width: 2px;
-  background: #e9eefa; border-radius: 2px;
-  z-index: 1;
-  opacity: calc(var(--level,0) > 0 ? 1 : 0);
-}
-.cat-tree li:last-child:before { height: 50%; bottom: auto; }
-.cat-tree li[data-haschildren="false"]:before { opacity: 0 !important; }
+    /* Base Styles */
+    body {
+        background: var(--gray-100);
+        font-family: 'IRANSans', 'Vazir', Tahoma, Arial;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 
-/* == DRAG & DROP == */
-.cat-tree-row[draggable="true"] { cursor: move; }
-.cat-tree li.drag-over { background: #d4e6fa !important; border: 2px dashed #2776d1;}
-.cat-tree li.dragging { opacity: 0.5; }
-.cat-tree li.drag-placeholder {
-  background: #bce0fc !important; border: 2px solid #2776d1; min-height: 40px;
-}
-.cat-tree-drop-marker {
-  position: absolute; right: 0; left: 0; height: 3px; background: #2776d1;
-  border-radius: 6px; z-index: 999;
-}
-.cat-tree li .fa-arrows-alt { color: #2776d1; font-size: 1.05em; opacity: 0.7; margin-left: 2px; }
+    /* Container & Layout */
+    .categories-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
 
-@media (max-width: 600px) {
-  .cat-tree-title { max-width: 110px;}
-  .cat-tree-desc { max-width: 120px;}
-  .cat-tree-actions { flex-wrap: wrap; }
-}
+    /* Header Section */
+    .categories-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+        position: relative;
+    }
 
-/* == ANIMATIONS == */
-.cat-tree-expander, .cat-tree-row, .cat-tree li {
-  transition: background .19s, box-shadow .17s, color .16s, min-height .17s, opacity .13s;
-}
-.cat-tree-img { transition: box-shadow .13s, border .13s; }
-.cat-tree li.selected { box-shadow: 0 1px 8px #2776d1cc; }
+    .categories-header::after {
+        content: '';
+        position: absolute;
+        bottom: -1rem;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(to right,
+            rgba(99, 179, 237, 0),
+            rgba(99, 179, 237, 0.4),
+            rgba(99, 179, 237, 0)
+        );
+    }
 
-/* == SCROLLBAR == */
-.cat-tree-list-scroll {
-  max-height: 600px; overflow-y: auto; padding-left: 8px;
-  scrollbar-width: thin; scrollbar-color: #98c3ef #f3f8ff;
-}
-.cat-tree-list-scroll::-webkit-scrollbar { width: 7px; background: #f3f8ff;}
-.cat-tree-list-scroll::-webkit-scrollbar-thumb { background: #98c3ef; border-radius: 7px;}
+    .categories-title {
+        font-size: 1.75rem;
+        color: var(--primary-700);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+    }
 
-/* == COUNT BADGES & LABELS == */
-.cat-tree-label {
-  display: inline-block;
-  padding: 2.5px 10px;
-  border-radius: 8px;
-  background: #f3fafd;
-  color: #2776d1;
-  font-size: 0.97em;
-  font-weight: 700;
-  margin-left: 4px;
-}
-.cat-tree-label[category-type="product"] { background: #d4f1e4; color: #1cb08e; }
-.cat-tree-label[category-type="service"] { background: #e2eafe; color: #2776d1; }
-.cat-tree-label[category-type="person"] { background: #ffe9c7; color: #c97e10; }
-.cat-tree-label[category-type="other"] { background: #f3fafd; color: #2776d1; }
+    .categories-title i {
+        font-size: 1.35em;
+        opacity: 0.9;
+        background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.1));
+    }
 
-/* == RESPONSIVE == */
-@media (max-width: 450px) {
-  .cat-toolbar { flex-direction: column; gap: 10px;}
-  .cat-search-box input { min-width: 110px; }
-}
+    .categories-title::after {
+        content: '';
+        position: absolute;
+        bottom: -0.5rem;
+        left: 0;
+        width: 50%;
+        height: 3px;
+        background: linear-gradient(to right, var(--primary-500), transparent);
+        border-radius: var(--radius-full);
+    }
 
-/* ===================
-   کد استایل تا بیش از 1200 خط ادامه دارد (برای brevity فقط مهم‌ترین بخش‌ها اینجا آمده)
-   در فایل نهایی، استایل با جزییات کامل، تم‌های مختلف، حالت‌های شب/روز، تم تاریک، حالت کم‌رنگ، انیمیشن‌های بیشتر و ... اضافه می‌گردد.
-   =================== */
+    /* Add Category Button */
+    .add-category-btn {
+        background: linear-gradient(135deg, var(--success-500), var(--success-600));
+        color: white;
+        border: none;
+        padding: 0.875rem 1.75rem;
+        border-radius: var(--radius-xl);
+        font-size: 1.05rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition-all);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .add-category-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+        transition: var(--transition-opacity);
+        opacity: 0;
+    }
+
+    .add-category-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .add-category-btn:hover::before {
+        opacity: 1;
+    }
+
+    .add-category-btn:active {
+        transform: translateY(0);
+    }
+
+    .add-category-btn i {
+        font-size: 1.1em;
+        transition: var(--transition-transform);
+    }
+
+    .add-category-btn:hover i {
+        transform: rotate(90deg);
+    }
+
+    /* Table Wrapper */
+    .cat-tree-wrapper {
+        background: white;
+        border-radius: var(--radius-2xl);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        transition: var(--transition-shadow);
+        position: relative;
+    }
+
+    .cat-tree-wrapper::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: var(--radius-2xl);
+        padding: 2px;
+        background: linear-gradient(135deg,
+            var(--primary-300),
+            var(--primary-500),
+            var(--primary-700)
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box,
+                      linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box,
+              linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+
+    .cat-tree-wrapper:hover {
+        box-shadow: var(--shadow-xl);
+    }
+
+    /* Table Styles */
+    .cat-tree-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+    }
+
+    /* Table Header */
+    .cat-tree-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        backdrop-filter: blur(8px);
+    }
+
+    .cat-tree-table th {
+        background: linear-gradient(180deg,
+            rgba(243, 247, 250, 0.95),
+            rgba(237, 242, 247, 0.95)
+        );
+        color: var(--primary-700);
+        font-weight: 800;
+        font-size: 1.1rem;
+        padding: 1.25rem 1.5rem;
+        text-align: right;
+        border-bottom: 2px solid var(--primary-100);
+        position: relative;
+        transition: var(--transition-colors);
+    }
+
+    .cat-tree-table th:hover {
+        background: linear-gradient(180deg,
+            rgba(235, 242, 249, 0.95),
+            rgba(230, 238, 245, 0.95)
+        );
+        color: var(--primary-800);
+    }
+
+    .cat-tree-table th::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--primary-500);
+        transform: scaleX(0);
+        transition: var(--transition-transform);
+    }
+
+    .cat-tree-table th:hover::after {
+        transform: scaleX(1);
+    }
+
+    /* Table Body */
+    .cat-tree-table td {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 1rem;
+        background: white;
+        transition: var(--transition-colors);
+    }
+
+    /* Table Row */
+    .cat-tree-row {
+        transition: var(--transition-all);
+        position: relative;
+    }
+
+    .cat-tree-row:hover {
+        background: var(--primary-50);
+    }
+
+    .cat-tree-row:hover td {
+        background: transparent;
+    }
+
+    .cat-tree-row::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background: linear-gradient(90deg,
+            var(--primary-100),
+            transparent 10%
+        );
+        opacity: 0;
+        transition: var(--transition-opacity);
+        pointer-events: none;
+    }
+
+    .cat-tree-row:hover::before {
+        opacity: 0.5;
+    }
+
+    /* Tree Structure */
+    .cat-tree-indent {
+        display: inline-block;
+        width: 24px;
+        height: 2px;
+        vertical-align: middle;
+        position: relative;
+        background: var(--gray-200);
+        margin-right: 0.5rem;
+        border-radius: var(--radius-full);
+        transition: var(--transition-all);
+    }
+
+    .cat-tree-indent::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 2px;
+        height: 24px;
+        background: var(--gray-200);
+        transform: translateY(-50%);
+        border-radius: var(--radius-full);
+        transition: var(--transition-all);
+    }
+
+    .cat-tree-row:hover .cat-tree-indent,
+    .cat-tree-row:hover .cat-tree-indent::before {
+        background: var(--primary-300);
+    }
+
+    /* Toggle Button */
+    .cat-tree-toggle {
+        background: none;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-full);
+        color: var(--primary-600);
+        transition: var(--transition-all);
+        position: relative;
+        margin-left: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cat-tree-toggle::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--primary-100);
+        border-radius: var(--radius-full);
+        transform: scale(0.8);
+        opacity: 0;
+        transition: var(--transition-all);
+    }
+
+    .cat-tree-toggle:hover::before {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .cat-tree-toggle i {
+        font-size: 1.2rem;
+        transition: var(--transition-transform);
+        position: relative;
+        z-index: 1;
+    }
+
+    .cat-tree-toggle[aria-expanded="true"] i {
+        transform: rotate(90deg);
+    }
+
+    /* Category Types */
+    .cat-type-prod,
+    .cat-type-serv,
+    .cat-type-pers {
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-lg);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cat-type-prod {
+        background: var(--success-50);
+        color: var(--success-700);
+    }
+
+    .cat-type-serv {
+        background: var(--primary-50);
+        color: var(--primary-700);
+    }
+
+    .cat-type-pers {
+        background: var(--warning-50);
+        color: var(--warning-700);
+    }
+
+    .cat-type-prod i,
+    .cat-type-serv i,
+    .cat-type-pers i {
+        font-size: 1.1em;
+        opacity: 0.8;
+    }
+
+    /* Category Images */
+    .cat-tree-img {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: var(--radius-xl);
+        border: 2px solid var(--primary-100);
+        transition: var(--transition-all);
+        background: var(--primary-50);
+        position: relative;
+    }
+
+    .cat-tree-img::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: var(--radius-xl);
+        border: 2px solid transparent;
+        background: linear-gradient(135deg,
+            var(--primary-300),
+            var(--primary-500)
+        ) border-box;
+        -webkit-mask: linear-gradient(#fff 0 0) padding-box,
+                      linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) padding-box,
+              linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0;
+        transition: var(--transition-opacity);
+    }
+
+    .cat-tree-img:hover {
+        transform: scale(1.1) rotate(3deg);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .cat-tree-img:hover::after {
+        opacity: 1;
+    }
+
+    /* Badges */
+    .cat-tree-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.4rem 0.875rem;
+        font-size: 0.95rem;
+        border-radius: var(--radius-lg);
+        background: var(--primary-50);
+        color: var(--primary-700);
+        font-weight: 600;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition-all);
+    }
+
+    .cat-tree-badge::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            135deg,
+            transparent,
+            rgba(99, 179, 237, 0.1),
+            transparent
+        );
+        transform: translateX(-100%);
+        transition: var(--transition-transform);
+    }
+
+    .cat-tree-badge:hover::before {
+        transform: translateX(100%);
+    }
+
+    .cat-tree-badge i {
+        font-size: 0.9em;
+        opacity: 0.8;
+    }
+
+    /* Description Text */
+    .cat-tree-desc {
+        color: var(--gray-600);
+        font-size: 0.95rem;
+        max-width: 300px;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        position: relative;
+        transition: var(--transition-colors);
+    }
+
+    .cat-tree-desc:hover {
+        color: var(--gray-800);
+    }
+
+    .cat-tree-desc::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 50px;
+        height: 100%;
+        background: linear-gradient(to right, transparent, white);
+        pointer-events: none;
+    }
+
+    /* Action Buttons */
+    .cat-tree-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .cat-tree-action-btn {
+        background: transparent;
+        color: var(--primary-600);
+        border: 2px solid var(--primary-100);
+        border-radius: var(--radius-lg);
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition-all);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cat-tree-action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--primary-600);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: var(--transition-transform);
+        z-index: 0;
+    }
+
+    .cat-tree-action-btn:hover {
+        color: white;
+        border-color: var(--primary-600);
+        transform: translateY(-2px);
+    }
+
+    .cat-tree-action-btn:hover::before {
+        transform: scaleX(1);
+    }
+
+    .cat-tree-action-btn i {
+        position: relative;
+        z-index: 1;
+        transition: var(--transition-transform);
+    }
+
+    .cat-tree-action-btn span {
+        position: relative;
+        z-index: 1;
+    }
+
+    .cat-tree-action-btn:hover i {
+        transform: scale(1.2);
+    }
+
+    .cat-tree-action-btn.delete-btn {
+        color: var(--danger-600);
+        border-color: var(--danger-100);
+    }
+
+    .cat-tree-action-btn.delete-btn::before {
+        background: var(--danger-600);
+    }
+
+    .cat-tree-action-btn.delete-btn:hover {
+        border-color: var(--danger-600);
+    }
+
+    /* Success Alert */
+    .alert-success {
+        background: linear-gradient(135deg,
+            var(--success-500),
+            var(--success-600)
+        );
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius-xl);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        overflow: hidden;
+        animation: slideInDown 0.5s ease-out;
+    }
+
+    .alert-success::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            135deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent
+        );
+        transform: translateX(-100%);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-1rem);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Loading States */
+    .cat-tree-row.loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    .cat-tree-row.loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        transform: translateX(-100%);
+        animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-0.5rem);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .cat-tree-row {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .cat-tree-row[data-level="0"] {
+        animation-delay: calc(var(--duration-75) * var(--row-index, 0));
+    }
+
+    /* Hover Effects */
+    .cat-tree-row:hover .cat-tree-badge {
+        background: var(--primary-100);
+        transform: translateY(-1px);
+    }
+
+    .cat-tree-row:hover .cat-type-prod {
+        background: var(--success-100);
+    }
+
+    .cat-tree-row:hover .cat-type-serv {
+        background: var(--primary-100);
+    }
+
+    .cat-tree-row:hover .cat-type-pers {
+        background: var(--warning-100);
+    }
+
+    /* Focus States */
+    .cat-tree-action-btn:focus-visible {
+        outline: 2px solid var(--primary-500);
+        outline-offset: 2px;
+    }
+
+    .cat-tree-toggle:focus-visible {
+        outline: 2px solid var(--primary-500);
+        outline-offset: 2px;
+    }
+
+    /* Print Styles */
+    @media print {
+        .cat-tree-wrapper {
+            box-shadow: none;
+        }
+
+        .cat-tree-action-btn {
+            display: none;
+        }
+
+        .categories-header {
+            display: none;
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .cat-tree-table th,
+        .cat-tree-table td {
+            padding: 1rem 1.25rem;
+        }
+
+        .cat-tree-img {
+            width: 44px;
+            height: 44px;
+        }
+
+        .cat-tree-desc {
+            max-width: 250px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .categories-title {
+            font-size: 1.5rem;
+        }
+
+        .cat-tree-table {
+            font-size: 0.95rem;
+        }
+
+        .cat-tree-badge {
+            font-size: 0.9rem;
+            padding: 0.35rem 0.75rem;
+        }
+
+        .cat-tree-action-btn {
+            padding: 0.4rem 0.875rem;
+            font-size: 0.9rem;
+        }
+
+        .cat-tree-img {
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .categories-container {
+            padding: 1.5rem 1rem;
+        }
+
+        .categories-title {
+            font-size: 1.35rem;
+        }
+
+        .add-category-btn {
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+        }
+
+        .cat-tree-table th,
+        .cat-tree-table td {
+            padding: 0.875rem 1rem;
+        }
+
+        .cat-tree-table {
+            font-size: 0.9rem;
+        }
+
+        .cat-tree-desc {
+            max-width: 200px;
+        }
+
+        .cat-tree-img {
+            width: 36px;
+            height: 36px;
+        }
+
+        .cat-tree-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .cat-tree-action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .categories-container {
+            padding: 1rem 0.75rem;
+        }
+
+        .categories-title {
+            font-size: 1.25rem;
+        }
+
+        .cat-tree-table th,
+        .cat-tree-table td {
+            padding: 0.75rem;
+        }
+
+        .cat-tree-table {
+            font-size: 0.85rem;
+        }
+
+        .cat-tree-badge {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.625rem;
+        }
+
+        .cat-tree-img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .cat-tree-desc {
+            max-width: 150px;
+        }
+    }
+
+    /* RTL Specific Styles */
+    [dir="rtl"] .cat-tree-toggle i {
+        transform: rotate(180deg);
+    }
+
+    [dir="rtl"] .cat-tree-toggle[aria-expanded="true"] i {
+        transform: rotate(90deg);
+    }
+
+    [dir="rtl"] .cat-tree-indent::before {
+        right: 0;
+        left: auto;
+    }
+
+    [dir="rtl"] .cat-tree-badge {
+        margin-right: 0;
+        margin-left: 0.5rem;
+    }
+
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --primary-50: #1a365d;
+            --primary-100: #1e429f;
+            --primary-200: #1a4bbd;
+            --primary-300: #2563eb;
+            --primary-400: #3b82f6;
+            --primary-500: #60a5fa;
+            --primary-600: #93c5fd;
+            --primary-700: #bfdbfe;
+            --primary-800: #dbeafe;
+            --primary-900: #eff6ff;
+
+            --success-50: #064e3b;
+            --success-100: #065f46;
+            --success-200: #047857;
+            --success-300: #059669;
+            --success-400: #10b981;
+            --success-500: #34d399;
+            --success-600: #6ee7b7;
+            --success-700: #a7f3d0;
+            --success-800: #d1fae5;
+            --success-900: #ecfdf5;
+
+            --warning-50: #451a03;
+            --warning-100: #78350f;
+            --warning-200: #92400e;
+            --warning-300: #b45309;
+            --warning-400: #d97706;
+            --warning-500: #f59e0b;
+            --warning-600: #fbbf24;
+            --warning-700: #fcd34d;
+            --warning-800: #fde68a;
+            --warning-900: #fef3c7;
+
+            --gray-50: #18181b;
+            --gray-100: #27272a;
+            --gray-200: #3f3f46;
+            --gray-300: #52525b;
+            --gray-400: #71717a;
+            --gray-500: #a1a1aa;
+            --gray-600: #d4d4d8;
+            --gray-700: #e4e4e7;
+            --gray-800: #f4f4f5;
+            --gray-900: #fafafa;
+        }
+
+        body {
+            background: var(--gray-100);
+            color: var(--gray-200);
+        }
+
+        .cat-tree-wrapper {
+            background: var(--gray-50);
+        }
+
+        .cat-tree-table th {
+            background: linear-gradient(180deg,
+                rgba(39, 39, 42, 0.95),
+                rgba(63, 63, 70, 0.95)
+            );
+            color: var(--primary-400);
+            border-bottom-color: var(--gray-700);
+        }
+
+        .cat-tree-table td {
+            background: var(--gray-50);
+            border-bottom-color: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .cat-tree-row:hover td {
+            background: var(--gray-100);
+        }
+
+        .cat-tree-badge {
+            background: var(--primary-900);
+            color: var(--primary-200);
+        }
+
+        .cat-tree-desc {
+            color: var(--gray-500);
+        }
+
+        .cat-tree-desc:hover {
+            color: var(--gray-400);
+        }
+
+        .cat-tree-desc::after {
+            background: linear-gradient(to right, transparent, var(--gray-50));
+        }
+
+        .cat-tree-action-btn {
+            background: var(--gray-100);
+            color: var(--primary-400);
+            border-color: var(--gray-700);
+        }
+
+        .cat-tree-action-btn:hover {
+            background: var(--primary-700);
+            color: var(--gray-900);
+        }
+
+        .cat-tree-toggle {
+            color: var(--primary-400);
+        }
+
+        .cat-tree-toggle:hover {
+            background: var(--primary-900);
+        }
+
+        .cat-type-prod {
+            background: var(--success-900);
+            color: var(--success-300);
+        }
+
+        .cat-type-serv {
+            background: var(--primary-900);
+            color: var(--primary-300);
+        }
+
+        .cat-type-pers {
+            background: var(--warning-900);
+            color: var(--warning-300);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg,
+                var(--success-600),
+                var(--success-500)
+            );
+        }
+    }
 </style>
 @endsection
 
 @section('content')
-<div class="container py-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
-        <h2 class="fs-4 fw-bold text-primary mb-0">
-            <i class="fa fa-sitemap ms-2"></i>دسته‌بندی‌ها (جدولی درختی حرفه‌ای)
+<div class="categories-container">
+    <div class="categories-header">
+        <h2 class="categories-title">
+            <i class="fa fa-sitemap"></i>
+            دسته‌بندی‌ها (جدولی درختی)
         </h2>
-        <a href="{{ route('categories.create') }}" class="btn btn-success px-4">
-            <i class="fa fa-plus ms-2"></i>
-            افزودن دسته‌بندی جدید
+        <a href="{{ route('categories.create') }}" class="add-category-btn">
+            <i class="fa fa-plus"></i>
+            <span>افزودن دسته‌بندی جدید</span>
         </a>
     </div>
-    <ul class="cat-breadcrumb" id="catBreadcrumb" style="display: none;"></ul>
 
-    <div class="cat-toolbar">
-        <div class="cat-search-box">
-            <input type="text" class="form-control" id="catSearch" placeholder="جستجوی دسته یا کد...">
-            <i class="fa fa-search"></i>
+    @if(session('success'))
+        <div class="alert alert-success">
+            <i class="fa fa-check-circle"></i>
+            {{ session('success') }}
         </div>
-        <button class="cat-filter" id="catExpandAll"><i class="fa fa-plus-square ms-1"></i>باز کردن همه</button>
-        <button class="cat-filter" id="catCollapseAll"><i class="fa fa-minus-square ms-1"></i>بستن همه</button>
-        <select class="cat-filter" id="catTypeFilter">
-            <option value="">همه نوع‌ها</option>
-            <option value="product">محصول</option>
-            <option value="service">خدمت</option>
-            <option value="person">شخص</option>
-        </select>
-    </div>
+    @endif
 
-    <div class="category-tree-container">
-        <div class="cat-tree-list-scroll">
-            <ul class="cat-tree" id="categoryTree"></ul>
+    <div class="cat-tree-wrapper">
+        <div class="table-responsive">
+            <table class="cat-tree-table">
+                <thead>
+                    <tr>
+                        <th style="width:35px"></th>
+                        <th>نام دسته</th>
+                        <th>نوع</th>
+                        <th>کد</th>
+                        <th>توضیح</th>
+                        <th>تصویر</th>
+                        <th>تعداد محصول</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        function renderCategoryRows($categories, $level = 0, $parentId = null) {
+                            foreach($categories as $index => $category) {
+                                $hasChildren = $category->children && $category->children->count() > 0;
+                                $typeClass = $category->category_type == 'product' ? 'cat-type-prod' :
+                                            ($category->category_type == 'service' ? 'cat-type-serv' : 'cat-type-pers');
+                                $typeIcon = $category->category_type == 'product' ? 'box' :
+                                           ($category->category_type == 'service' ? 'cogs' : 'user');
+                                $typeText = $category->category_type == 'product' ? 'محصول' :
+                                           ($category->category_type == 'service' ? 'خدمت' : 'شخص');
+
+                                echo '<tr class="cat-tree-row" data-id="'.$category->id.'"
+                                     data-parent="'.($category->parent_id ?: '').'"
+                                     data-level="'.$level.'"
+                                     style="--row-index:'.$index.'"
+                                     '.($level > 0 ? ' hidden' : '').'>';
+
+                                // Toggle Column
+                                echo '<td>';
+                                if($hasChildren) {
+                                    echo '<button class="cat-tree-toggle" aria-expanded="false"
+                                           data-toggle-id="'.$category->id.'"
+                                           title="باز/بستن زیرشاخه‌ها">
+                                           <i class="fa fa-caret-left"></i>
+                                          </button>';
+                                } else {
+                                    echo str_repeat('<span class="cat-tree-indent"></span>', $level+1);
+                                }
+                                echo '</td>';
+
+                                // Name Column
+                                echo '<td>';
+                                echo str_repeat('<span class="cat-tree-indent"></span>', $level);
+                                echo '<span class="cat-name">'.e($category->name).'</span>';
+                                echo '</td>';
+
+                                // Type Column
+                                echo '<td>';
+                                echo '<span class="'.$typeClass.'">
+                                        <i class="fa fa-'.$typeIcon.'"></i>
+                                        <span>'.$typeText.'</span>
+                                     </span>';
+                                echo '</td>';
+
+                                // Code Column
+                                echo '<td>';
+                                echo '<span class="cat-tree-badge">
+                                        <i class="fa fa-hashtag"></i>
+                                        <span>'.e($category->code).'</span>
+                                     </span>';
+                                echo '</td>';
+
+                                // Description Column
+                                echo '<td>';
+                                echo '<span class="cat-tree-desc" title="'.e($category->description).'">'.
+                                     e($category->description).'</span>';
+                                echo '</td>';
+
+                                // Image Column
+                                echo '<td>';
+                                if($category->image) {
+                                    echo '<img src="/storage/'.e($category->image).'"
+                                          class="cat-tree-img"
+                                          alt="'.$category->name.'"
+                                          loading="lazy">';
+                                }
+                                echo '</td>';
+
+                                // Products Count Column
+                                echo '<td>';
+                                echo '<span class="cat-tree-badge">
+                                        <i class="fa fa-cubes"></i>
+                                        <span>'.($category->products ? $category->products->count() : 0).'</span>
+                                     </span>';
+                                echo '</td>';
+
+                                // Actions Column
+                                echo '<td>';
+                                echo '<div class="cat-tree-actions">';
+                                echo '<a href="'.route('categories.edit', $category->id).'"
+                                      class="cat-tree-action-btn">
+                                      <i class="fa fa-edit"></i>
+                                      <span>ویرایش</span>
+                                     </a>';
+                                echo '<form action="'.route('categories.destroy', $category->id).'"
+                                      method="POST"
+                                      class="d-inline"
+                                      onsubmit="return confirmDelete(event)">';
+                                echo csrf_field();
+                                echo method_field('DELETE');
+                                echo '<button type="submit" class="cat-tree-action-btn delete-btn">
+                                        <i class="fa fa-trash"></i>
+                                        <span>حذف</span>
+                                      </button>';
+                                echo '</form>';
+                                echo '</div>';
+                                echo '</td>';
+                                echo '</tr>';
+
+                                if($hasChildren) {
+                                    renderCategoryRows($category->children, $level + 1, $category->id);
+                                }
+                            }
+                        }
+                    @endphp
+
+                    @php
+                        renderCategoryRows($categories);
+                    @endphp
+                </tbody>
+            </table>
         </div>
-        <div id="catTreeContextMenu" class="cat-tree-contextmenu"></div>
     </div>
 </div>
 @endsection
 
 @section('scripts')
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"/>
 <script>
-/**
- * --- کد جاوااسکریپت درختی پیشرفته ---
- * قابلیت‌ها: expand/collapse تو در تو، drag & drop، breadcrumb، context menu، جستجو و فیلتر، highlight، شمارش زیرشاخه، انیمیشن، راست‌کلیک، عملیات CRUD ...
- * حجم کد جاوااسکریپت این فایل با جزئیات و کامنت تا بیش از 1000 خط می‌رسد.
- */
+document.addEventListener('DOMContentLoaded', function(){
+    // Cache DOM elements
+    const table = document.querySelector('.cat-tree-table');
+    const toggleButtons = document.querySelectorAll('.cat-tree-toggle');
 
-// ======= دیتای درختی دسته‌بندی =======
-window.categoryTreeData = @json($categories); // با children و products لود شده
-
-// ======= فانکشن کمکـی برای ساخت ساختار درختی =======
-function buildTreeNodes(categories, parentId = null, level = 0) {
-    let html = '';
-    categories.forEach(cat => {
-        let hasChildren = cat.children && cat.children.length > 0;
-        let typeClass = cat.category_type === 'product' ? 'product' : (cat.category_type === 'service' ? 'service' : (cat.category_type === 'person' ? 'person' : 'other'));
-        let levelStyle = `--level: ${level}`;
-        html += `<li data-id="${cat.id}" data-parent="${cat.parent_id || ''}" data-level="${level}" data-haschildren="${hasChildren}" style="${levelStyle}">
-            <div class="cat-tree-row" draggable="true" data-id="${cat.id}">
-                <button class="cat-tree-expander" ${hasChildren ? '' : 'hidden'} aria-expanded="false" title="باز/بستن زیرشاخه‌ها">
-                    <i class="fa fa-caret-left"></i>
-                </button>
-                ${cat.image ? `<img src="/storage/${cat.image}" class="cat-tree-img" alt="">` : ''}
-                <span class="cat-tree-title">${cat.name}</span>
-                <span class="cat-tree-label" category-type="${typeClass}">${cat.category_type === 'product' ? 'محصول' : (cat.category_type === 'service' ? 'خدمت' : (cat.category_type === 'person' ? 'شخص' : 'دیگر'))}</span>
-                <span class="cat-tree-code">${cat.code || ''}</span>
-                <span class="cat-tree-desc">${cat.description || ''}</span>
-                ${cat.products && cat.products.length ? `<span class="cat-tree-count">${cat.products.length}</span>` : ''}
-                <div class="cat-tree-actions">
-                    <a href="/categories/${cat.id}/edit" class="cat-tree-action-btn"><i class="fa fa-edit ms-1"></i>ویرایش</a>
-                    <form action="/categories/${cat.id}" method="POST" style="display:inline;" onsubmit="return confirm('آیا مطمئن هستید؟')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="cat-tree-action-btn danger"><i class="fa fa-trash ms-1"></i>حذف</button>
-                    </form>
-                </div>
-                <i class="fa fa-arrows-alt ms-1" title="جابجایی"></i>
-            </div>
-            ${hasChildren ? `<ul class="cat-tree">${buildTreeNodes(cat.children, cat.id, level + 1)}</ul>` : ''}
-        </li>`;
+    // Add event listeners to all toggle buttons
+    toggleButtons.forEach(btn => {
+        btn.addEventListener('click', handleToggleClick);
     });
-    return html;
-}
 
-// ======= بارگذاری اولیه درخت =======
-function renderCategoryTree(filter = '') {
-    const treeEl = document.getElementById('categoryTree');
-    let data = window.categoryTreeData;
-    // فیلتر نوع
-    const typeVal = $('#catTypeFilter').val();
-    if (typeVal) {
-        data = data.filter(c => c.category_type === typeVal);
+    // Handle toggle button click
+    function handleToggleClick(event) {
+        const btn = event.currentTarget;
+        const id = btn.getAttribute('data-toggle-id');
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+
+        // Toggle button state with animation
+        btn.setAttribute('aria-expanded', !expanded);
+
+        // Toggle children with animation
+        toggleChildren(id, !expanded);
     }
-    // جستجو
-    if (filter && filter.length > 1) {
-        data = deepSearchTree(data, filter);
+
+    // Toggle children rows
+    function toggleChildren(parentId, show) {
+        const childRows = document.querySelectorAll(`tr[data-parent="${parentId}"]`);
+
+        childRows.forEach(row => {
+            if(show) {
+                // Show animation
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(-10px)';
+                row.removeAttribute('hidden');
+
+                // Trigger reflow
+                row.offsetHeight;
+
+                // Apply animation
+                row.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            } else {
+                // Hide animation
+                row.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(-10px)';
+
+                // Hide after animation
+                setTimeout(() => {
+                    row.setAttribute('hidden', 'hidden');
+                    row.style.opacity = '';
+                    row.style.transform = '';
+                }, 200);
+            }
+
+            // Recursively handle nested children
+            if(!show) {
+                const id = row.getAttribute('data-id');
+                toggleChildren(id, false);
+
+                const btn = row.querySelector('.cat-tree-toggle');
+                if(btn) btn.setAttribute('aria-expanded', 'false');
+            }
+        });
     }
-    treeEl.innerHTML = buildTreeNodes(data);
-    bindExpanders();
-    bindDraggables();
-    bindContextMenus();
-}
-function deepSearchTree(tree, search) {
-    // جستجوی بازگشتی روی نام و کد
-    let result = [];
-    for (let cat of tree) {
-        let match = (cat.name && cat.name.includes(search)) || (cat.code && cat.code.includes(search));
-        let children = (cat.children && cat.children.length) ? deepSearchTree(cat.children, search) : [];
-        if (match || children.length) {
-            let catCopy = {...cat};
-            catCopy.children = children;
-            result.push(catCopy);
+
+    // Confirmation dialog for delete
+    window.confirmDelete = function(event) {
+        event.preventDefault();
+
+        if(confirm('آیا از حذف این دسته‌بندی اطمینان دارید؟')) {
+            const form = event.target;
+            const row = form.closest('tr');
+
+            // Add loading state
+            row.classList.add('loading');
+
+            // Submit the form
+            form.submit();
         }
+
+        return false;
     }
-    return result;
-}
 
-// ======= Expand/Collapse همه =======
-function expandCollapseAll(expand) {
-    $('#categoryTree .cat-tree-expander').each(function(){
-        $(this).attr('aria-expanded', expand ? 'true' : 'false');
-        let ul = $(this).closest('li').children('ul.cat-tree');
-        if (expand) ul.slideDown(180);
-        else ul.slideUp(120);
-    });
-}
-
-// ======= Expand/Collapse تکی =======
-function bindExpanders() {
-    $('#categoryTree .cat-tree-expander').off('click').on('click', function(e){
-        e.stopPropagation();
-        let btn = $(this);
-        let expanded = btn.attr('aria-expanded') === 'true';
-        btn.attr('aria-expanded', !expanded);
-        let ul = btn.closest('li').children('ul.cat-tree');
-        if (!expanded) ul.slideDown(180);
-        else ul.slideUp(120);
-        updateBreadcrumb(btn.closest('li').data('id'));
-    });
-    // پیشفرض همه بسته
-    $('#categoryTree ul.cat-tree').hide();
-}
-
-// ======= Breadcrumb =======
-function updateBreadcrumb(catId) {
-    let path = [];
-    let li = $(`#categoryTree li[data-id="${catId}"]`);
-    while (li.length) {
-        let title = li.find('> .cat-tree-row .cat-tree-title').text();
-        path.unshift(`<li data-id="${li.data('id')}">${title}</li>`);
-        let parentId = li.data('parent');
-        li = $(`#categoryTree li[data-id="${parentId}"]`);
-    }
-    if (path.length) {
-        $('#catBreadcrumb').show().html(path.join(''));
-    } else {
-        $('#catBreadcrumb').hide();
-    }
-}
-$('#catBreadcrumb').on('click', 'li', function(){
-    let id = $(this).data('id');
-    $(`#categoryTree li[data-id="${id}"] > .cat-tree-row`).trigger('click');
-});
-
-// ======= Search & Filter Events =======
-$('#catSearch').on('input', function(){
-    renderCategoryTree(this.value.trim());
-});
-$('#catTypeFilter').on('change', function(){
-    renderCategoryTree($('#catSearch').val().trim());
-});
-$('#catExpandAll').on('click', function(){ expandCollapseAll(true); });
-$('#catCollapseAll').on('click', function(){ expandCollapseAll(false); });
-
-// ======= Drag & Drop =======
-function bindDraggables() {
-    $('#categoryTree .cat-tree-row').attr('draggable', true);
-    let dragSrcEl = null;
-    $('#categoryTree .cat-tree-row').off('dragstart').on('dragstart', function(e){
-        dragSrcEl = this;
-        $(this).closest('li').addClass('dragging');
-        e.originalEvent.dataTransfer.effectAllowed = 'move';
-        e.originalEvent.dataTransfer.setData('text/plain', $(this).data('id'));
-    });
-    $('#categoryTree .cat-tree-row').off('dragend').on('dragend', function(){
-        $('#categoryTree .dragging').removeClass('dragging');
-        $('#categoryTree .drag-over').removeClass('drag-over');
-    });
-    $('#categoryTree .cat-tree-row').off('dragover').on('dragover', function(e){
-        e.preventDefault(); e.stopPropagation();
-        $(this).closest('li').addClass('drag-over');
-    });
-    $('#categoryTree .cat-tree-row').off('dragleave').on('dragleave', function(e){
-        $(this).closest('li').removeClass('drag-over');
-    });
-    $('#categoryTree .cat-tree-row').off('drop').on('drop', function(e){
-        e.preventDefault(); e.stopPropagation();
-        let targetId = $(this).data('id');
-        let srcId = e.originalEvent.dataTransfer.getData('text/plain');
-        if (srcId && srcId !== targetId) {
-            // اینجا درخواست Ajax بده برای ویرایش parent_id دسته srcId به targetId
-            // بعد از موفقیت، دوباره renderCategoryTree کن
-            alert('جابجایی دسته انجام شد! (در نسخه نهایی، عملیات Ajax انجام می‌شود)');
+    // Optional: Add keyboard navigation
+    table.addEventListener('keydown', function(e) {
+        if(e.target.classList.contains('cat-tree-toggle')) {
+            if(e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.target.click();
+            }
         }
-        $('#categoryTree .dragging').removeClass('dragging');
-        $('#categoryTree .drag-over').removeClass('drag-over');
     });
-}
-
-// ======= Context Menu (راست کلیک) =======
-function bindContextMenus() {
-    $('#categoryTree .cat-tree-row').off('contextmenu').on('contextmenu', function(e){
-        e.preventDefault();
-        let li = $(this).closest('li');
-        let id = li.data('id');
-        showCatContextMenu(e.pageX, e.pageY, id, li);
-    });
-    $(document).on('click', function(){ $('#catTreeContextMenu').hide(); });
-}
-function showCatContextMenu(x, y, catId, li) {
-    let menu = $('#catTreeContextMenu');
-    menu.html(`
-        <button onclick="openEditCategory(${catId})"><i class='fa fa-edit ms-1'></i>ویرایش</button>
-        <button onclick="deleteCategory(${catId})" class="danger"><i class='fa fa-trash ms-1'></i>حذف</button>
-        <button onclick="copyCategoryCode(${catId})"><i class='fa fa-copy ms-1'></i>کپی کد دسته</button>
-    `);
-    menu.css({ top: y, left: x, display: 'flex' });
-}
-window.openEditCategory = function(catId) {
-    window.location.href = '/categories/' + catId + '/edit';
-};
-window.deleteCategory = function(catId) {
-    if (confirm('آیا مطمئن هستید؟')) {
-        // ارسال فرم حذف یا Ajax
-        alert('در نسخه واقعی، حذف دسته انجام می‌شود!');
-    }
-};
-window.copyCategoryCode = function(catId) {
-    let code = $(`#categoryTree li[data-id="${catId}"] .cat-tree-code`).text();
-    if (code) {
-        navigator.clipboard.writeText(code);
-        alert('کد دسته کپی شد!');
-    }
-};
-
-// ======= انتخاب و هایلایت =======
-$('#categoryTree').on('click', '.cat-tree-row', function(e){
-    $('#categoryTree .cat-tree-row').removeClass('selected');
-    $(this).addClass('selected');
-    let id = $(this).data('id');
-    updateBreadcrumb(id);
 });
-
-// ======= رندر اولیه =======
-$(document).ready(function(){
-    renderCategoryTree();
-});
-
-// ========== توضیح: کد اسکریپت تا بیش از 1000 خط ادامه دارد (در نسخه کامل بخش‌های بیشتر مثل تم تاریک، ویرایش in-place، drag & drop child ordering، جستجوی پیشرفته، نمایش محصولات هر دسته با popover، و ... اضافه می‌شود) ==========
 </script>
 @endsection
