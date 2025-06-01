@@ -40,7 +40,10 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 // بخش های غیر از دسته بندی بدون تغییر -------------------------------
 
 Route::get('/categories/list', [CategoryApiController::class, 'list']);
-
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('/products/ajax-list', [ProductController::class, 'ajaxList']);
+    Route::get('/services/ajax-list', [ServiceController::class, 'ajaxList']);
+});
 // --------------------------------------------------------------------
 
 // ----------------- فقط بخش دسته بندی (اصلاح شده) --------------------
@@ -111,8 +114,7 @@ Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
 
 Route::post('/persons/{person}/percent', [PersonController::class, 'updatePercent'])->name('persons.updatePercent');
 Route::get('/sales/item-info', [ProductController::class, 'itemInfo']); // هندل کردن هم محصول و هم خدمت
-Route::get('/products/ajax-list', [ProductController::class, 'ajaxList']);
-Route::get('/services/ajax-list', [ServiceController::class, 'ajaxList']);
+
 
 // Landing page
 Route::get('/', [LandingController::class, 'index'])->name('landing');
