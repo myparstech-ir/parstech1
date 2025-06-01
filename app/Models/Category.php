@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
+
+
+
     protected $fillable = [
         'name', 'code', 'category_type', 'parent_id', 'description', 'image'
     ];
@@ -15,15 +18,14 @@ class Category extends Model
         return $this->hasMany(Product::class, 'category_id');
     }
 
-    public function parent()
-    {
-        return $this->belongsTo(Category::class, 'parent_id');
+    // روابط والد-فرزند برای استفاده‌های آینده
+    public function parent() {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+    public function children() {
+        return $this->hasMany(self::class, 'parent_id');
     }
 
-    public function children()
-    {
-        return $this->hasMany(Category::class, 'parent_id');
-    }
 
     // رابطه بازگشتی برای ساختار درختی
     public function childrenRecursive()

@@ -19,7 +19,38 @@ class CategoryController extends Controller
         return view('categories.index', compact('categories'));
 
     }
+    public function tree()
+    {
+        return view('categories.tree');
+    }
 
+        // API: خروجی همه دسته‌بندی‌ها برای Tree.js (مدل داده مورد نیاز)
+        public function treeJson()
+        {
+            // بدنه درخت به صورت بازگشتی
+            $all = Category::select('id', 'name', 'parent_id')->get();
+            $tree = $this->buildTree($all);
+            return response()->json($tree);
+        }
+
+        private function buildTree($categories, $parentId = null)
+    {
+        $branch = [];
+        foreach ($categories as $cat) {
+            if ($cat->parent_id == $parentId) {
+                $children = $this->buildTree($categories, $cat->id);
+                $node = [
+                    'id' => $cat->id,
+                    'text' => $cat->name,
+                ];
+                if ($children) {
+                    $node['children'] = $children;
+                }
+                $branch[] = $node;
+            }
+        }
+        return $branch;
+    }
     /**
      * داده‌های درختی دسته‌بندی‌ها برای jsTree (خروجی JSON پیشرفته)
      */
