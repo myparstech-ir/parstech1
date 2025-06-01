@@ -526,5 +526,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+document.addEventListener('DOMContentLoaded', function() {
+    // دکمه باز/بستن زیردسته‌ها
+    document.querySelectorAll('.cat-tree-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            let expanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            // عنصر زیردسته (cat-tree-children) را پیدا کن
+            let parent = btn.closest('.cat-tree-row');
+            if(parent){
+                let child = parent.querySelector('.cat-tree-children');
+                if(child){
+                    if(expanded) {
+                        child.style.display = 'none';
+                    } else {
+                        child.style.display = '';
+                    }
+                }
+            }
+        });
+    });
+});
 </script>
 @endsection
